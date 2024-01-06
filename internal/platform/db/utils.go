@@ -9,6 +9,26 @@ import (
 	"time"
 )
 
+func TableExists(ctx context.Context, client *dynamodb.Client, tableName string) (bool, error) {
+	p := dynamodb.NewListTablesPaginator(client, nil, func(o *dynamodb.ListTablesPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for p.HasMorePages() {
+		out, err := p.NextPage(ctx)
+		if err != nil {
+			return false, err
+		}
+
+		for _, tn := range out.TableNames {
+			if tn == tableName {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
 // WaitForDynamoDBTableCreate waits for dynamodb table to be created
 func WaitForDynamoDBTableCreate(ctx context.Context, client *dynamodb.Client, tableName string) {
 
