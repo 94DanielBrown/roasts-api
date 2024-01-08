@@ -2,16 +2,18 @@ package app
 
 import (
 	"fmt"
-	"github.com/94DanielBrown/roc/pkg/infrastructure"
 	"log"
 
 	"github.com/94DanielBrown/roc/config"
+	"github.com/94DanielBrown/roc/internal/platform/db"
+	"github.com/94DanielBrown/roc/pkg/infrastructure"
 )
 
 const webPort = 8000
 
 type Config struct {
-	Models data.Models
+	RoastModels  db.RoastModels
+	ReviewModels db.ReviewModels
 }
 
 func main() {
@@ -26,6 +28,7 @@ func main() {
 	}
 
 	app := Config{
-		Models: data.New(client),
+		RoastModels:  db.NewRoastModels(client),
+		ReviewModels: db.NewReviewModels(client),
 	}
 }
