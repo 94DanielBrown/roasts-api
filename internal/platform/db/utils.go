@@ -46,5 +46,4 @@ func WaitForDynamoDBTableCreate(ctx context.Context, client *dynamodb.Client, ta
 	if err != nil {
 		log.Panic(fmt.Sprintf("time out waiting for table %s to be created: %v", tableName, err))
 	}
-
 }

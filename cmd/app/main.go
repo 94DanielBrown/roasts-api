@@ -1,8 +1,10 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/94DanielBrown/roc/config"
 	"github.com/94DanielBrown/roc/internal/platform/db"
@@ -30,5 +32,28 @@ func main() {
 	app := Config{
 		RoastModels:  db.NewRoastModels(client),
 		ReviewModels: db.NewReviewModels(client),
+	}
+
+	ctx := context.Background()
+	tableName := "roc"
+
+	exists, err := db.TableExists(ctx, client, tableName)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	if !exists {
+		err = db.CreateDynamoDBTable(ctx, client, tableName)
+		if err != nil {
+			log.Fatalf("Error creating Dynamoodb table: %v", err)
+		}
+
+		//db.Waitforcreate
+		log.Println("Table created successfully.")
+	} else {
+		log.Printf("Table with name %v already exists.", tableName)
 	}
 }
