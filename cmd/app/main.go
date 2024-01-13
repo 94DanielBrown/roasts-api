@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"context"
@@ -51,9 +51,12 @@ func main() {
 			log.Fatalf("Error creating Dynamoodb table: %v", err)
 		}
 
-		//db.Waitforcreate
 		log.Println("Table created successfully.")
 	} else {
 		log.Printf("Table with name %v already exists.", tableName)
 	}
+
+	e := app.routes()
+
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", webPort)))
 }
