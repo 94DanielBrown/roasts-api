@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/94DanielBrown/roc/config"
@@ -16,22 +18,28 @@ const webPort = 8000
 type Config struct {
 	RoastModels  db.RoastModels
 	ReviewModels db.ReviewModels
+	Logger       *slog.Logger
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
 	err := config.LoadEnvVariables()
 	if err != nil {
-		log.Panic(fmt.Sprintf("Unable to load env variables: %s", err))
+		logger.Error("Unable to load env variables", "error", err)
+		os.Exit(1)
 	}
 
 	client, err := infrastructure.ConnectToDynamo()
 	if err != nil {
-		log.Panicf("Error connecting to dynamodb: %v", err)
+		logger.Error("Error connecting to dynamodb", "error", err)
+		os.Exit(1)
 	}
 
 	app := Config{
 		RoastModels:  db.NewRoastModels(client),
 		ReviewModels: db.NewReviewModels(client),
+		Logger:       logger,
 	}
 
 	ctx := context.Background()
