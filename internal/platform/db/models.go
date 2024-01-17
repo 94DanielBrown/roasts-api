@@ -13,10 +13,10 @@ type ReviewModels struct {
 }
 
 type Roast struct {
-	RoastID    string `dynamodbav:"PK"`
-	PriceRange string `dynamodbav:"SK"`
-	Name       string `dynamodbav:"Name"`
-	ImageUrl   string `dynamodbav:"ImageUrl"`
+	RoastID    string `dynamodbav:"PK" json:"roastId"`
+	PriceRange string `dynamodbav:"SK" json:"priceRange"`
+	Name       string `dynamodbav:"Name" json:"name"`
+	ImageUrl   string `dynamodbav:"ImageUrl" json:"imageUrl"`
 }
 
 type Review struct {
