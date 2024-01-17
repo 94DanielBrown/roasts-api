@@ -9,7 +9,7 @@ func (app *Config) routes() *echo.Echo {
 
 	e.GET("/", app.Home)
 	e.GET("/roasts", app.ListRoasts)
-	e.POST("/roast", app.CreateRoast)
+	e.POST("/roast", app.CreateRoast, app.CreateRoastValidator)
 
 	return e
 }

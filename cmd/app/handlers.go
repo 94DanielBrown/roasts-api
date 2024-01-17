@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/94DanielBrown/roc/internal/platform/db"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -16,12 +17,18 @@ func (app *Config) ListRoasts(c echo.Context) error {
 
 // Need to call this with Roast struct
 func (app *Config) CreateRoast(c echo.Context) error {
-	// Logic to create a roast
-	//roastID := c.FormValue("roastID")
-	//reviewer := c.FormValue("reviewer")
-	//// Image will be uploaded on frontend and then url passed through to store in dynamo
-	//imageUrl := c.FormValue("imageUrl")
-	return c.String(http.StatusCreated, "Roast created")
+	var roastRequest db.Roast
+
+	if err := c.Bind(&roastRequest); err != nil {
+		return err
+	}
+
+	response := map[string]string{
+		"roastID":  roastRequest.RoastID,
+		"reviewer": roastRequest.Name,
+	}
+
+	return c.JSON(http.StatusCreated, response)
 }
 
 func (app *Config) GetRoast(c echo.Context, roastID string) error {
