@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/94DanielBrown/roc/internal/platform/db"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"net/http"
 )
 
@@ -20,8 +21,11 @@ func (app *Config) CreateRoast(c echo.Context) error {
 	var roastRequest db.Roast
 
 	if err := c.Bind(&roastRequest); err != nil {
+		log.Error("Error in binding request: ", err)
 		return err
 	}
+
+	log.Info("Roast request received: ", roastRequest)
 
 	response := map[string]string{
 		"roastID":  roastRequest.RoastID,

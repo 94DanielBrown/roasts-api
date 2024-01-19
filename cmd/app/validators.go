@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"net/http"
 	"strings"
 
@@ -14,6 +15,7 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 
 		// Bind the JSON payload to the struct
 		if err := c.Bind(&roastReq); err != nil {
+			log.Error(err)
 			return err
 		}
 
