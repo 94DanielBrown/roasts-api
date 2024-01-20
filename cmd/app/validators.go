@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"io/ioutil"
+	"io"
 	"strings"
 )
 
@@ -15,21 +15,18 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 		req := c.Request()
 
 		// Read the body to a variable
-		body, err := ioutil.ReadAll(req.Body)
+		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			log.Error("Failed to read request body: ", err)
 			return err
 		}
 
-		// Log the body
-		log.Info("Request Body: ", string(body))
-
-		req.Body = ioutil.NopCloser(strings.NewReader(string(body)))
+		req.Body = io.NopCloser(strings.NewReader(string(body)))
 
 		var bodyBytes []byte
 		if c.Request().Body != nil {
-			bodyBytes, _ = ioutil.ReadAll(c.Request().Body)
-			c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			bodyBytes, _ = io.ReadAll(c.Request().Body)
+			c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			// parse json
 			reqData := struct {
 				RoastID    string `json:"roastId"`
