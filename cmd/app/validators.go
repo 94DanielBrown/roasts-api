@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"io"
+	"log/slog"
+	"net/http"
 	"strings"
 )
 
@@ -17,8 +18,9 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 		// Read the body to a variable
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			log.Error("Failed to read request body: ", err)
-			return err
+			errMsg := "Failed to read request body: "
+			slog.Error(errMsg, "error", err)
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 		}
 
 		req.Body = io.NopCloser(strings.NewReader(string(body)))
@@ -36,7 +38,8 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 			}{}
 			err := json.Unmarshal(bodyBytes, &reqData)
 			if err != nil {
-				return c.JSON(400, "error json")
+				slog.Error("Error unmarshalling JSON: ", err)
+				return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON format"})
 			}
 			fmt.Println(reqData.RoastID)
 		}
