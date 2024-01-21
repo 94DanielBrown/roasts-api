@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/94DanielBrown/roc/internal/platform/db"
+	"github.com/94DanielBrown/roc/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"log/slog"
 	"net/http"
 )
 
@@ -16,23 +18,27 @@ func (app *Config) ListRoasts(c echo.Context) error {
 	return c.JSON(http.StatusOK, []string{"Roast1", "Roast2"}) // Example response
 }
 
-// Need to call this with Roast struct
+// CreateRoast adds the new roast to DynamoDB
 func (app *Config) CreateRoast(c echo.Context) error {
-	var roastRequest db.Roast
+	var newRoast db.Roast
 
-	if err := c.Bind(&roastRequest); err != nil {
-		log.Error("Error in binding request: ", err)
-		return err
+	if err := c.Bind(&newRoast); err != nil {
+		errMsg := "Error in binding request"
+		slog.Error(errMsg, "err", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	log.Info("Roast request received: ", roastRequest)
+	newRoast.RoastID = "Roast#" + utils.ToPascalCase(newRoast.Name)
 
-	response := map[string]string{
-		"roastID":  roastRequest.RoastID,
-		"reviewer": roastRequest.Name,
+	log.Info("Roast request received: ", newRoast)
+
+	if err := app.RoastModels.CreateRoast(newRoast); err != nil {
+		errMsg := "Error creating roast"
+		slog.Error(errMsg, "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusOK, newRoast)
 }
 
 func (app *Config) GetRoast(c echo.Context, roastID string) error {

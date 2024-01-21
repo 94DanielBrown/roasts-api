@@ -19,7 +19,7 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			errMsg := "Failed to read request body: "
-			slog.Error(errMsg, "error", err)
+			slog.Error(errMsg, "err", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 		}
 
@@ -38,8 +38,9 @@ func (app *Config) CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc 
 			}{}
 			err := json.Unmarshal(bodyBytes, &reqData)
 			if err != nil {
-				slog.Error("Error unmarshalling JSON: ", err)
-				return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON format"})
+				errMsg := "Error unmarshalling JSON"
+				slog.Error(errMsg, "err", err)
+				return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 			}
 			fmt.Println(reqData.RoastID)
 		}
