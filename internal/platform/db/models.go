@@ -16,18 +16,27 @@ type RoastModels struct {
 }
 
 type ReviewModels struct {
-	Review Review
+	client *dynamodb.Client
 }
 
 type Roast struct {
 	// Exclude id from JSON as it's generated in API from the name
-	RoastID    string `dynamodbav:"PK" json:"-"`
-	PriceRange string `dynamodbav:"SK" json:"priceRange"`
-	Name       string `dynamodbav:"Name" json:"name"`
-	ImageUrl   string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	RoastID       string  `dynamodbav:"PK" json:"-"`
+	SK            string  `dynamodbav:"SK" json:"-"`
+	Name          string  `dynamodbav:"Name" json:"name"`
+	ImageUrl      string  `dynamodbav:"ImageUrl" json:"imageUrl"`
+	PriceRange    string  `dynamodbav:"PriceRange" json:"priceRange"`
+	AverageRating float64 `dynamodbav:"AverageRating" json:"averageRating,omitempty"`
 }
 
 type Review struct {
+	RoastID  string  `dynamodbav:"PK" json:"-"`
+	SortKey  string  `dynamodbav:"SK" json:"-"`
+	UserID   string  `dynamodbav:"UserID"`
+	Rating   float64 `dynamodbav:"Rating"`
+	Comment  string  `dynamodbav:"Comment,omitempty"`
+	ReviewID string  `dynamodbav:"ReviewID"`
+	ImageUrl string  `dynamodbav:"ImageUrl" json:"imageUrl"`
 }
 
 func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
@@ -35,8 +44,7 @@ func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
 }
 
 func NewReviewModels(dynamo *dynamodb.Client) ReviewModels {
-	client = dynamo
-	return ReviewModels{}
+	return ReviewModels{client: dynamo}
 }
 
 func (rm *RoastModels) CreateRoast(roast Roast) error {
@@ -46,7 +54,8 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item:      av,
+		Item: av,
+		// TODO - Don't hardcode table name
 		TableName: aws.String("roasts"),
 	}
 
@@ -54,10 +63,11 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 	return err
 }
 
-func (rm *RoastModels) UpdateAverageRating(roastID string, newRating float64) error {
+func (rm *RoastModels) UpdateAverageRating(roastID string, newAverage float64) error {
 
 	// Construct the update input
 	input := &dynamodb.UpdateItemInput{
+		// TODO - Don't hardcode table name
 		TableName: aws.String("roasts"),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: roastID},
@@ -72,4 +82,46 @@ func (rm *RoastModels) UpdateAverageRating(roastID string, newRating float64) er
 	// Execute the update
 	_, err := rm.client.UpdateItem(context.Background(), input)
 	return err
+}
+
+// GetAllRoasts performs a scan of dynamodb to get all roasts
+func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
+	input := &dynamodb.ScanInput{
+		// TODO - Don't hardcode table name
+		TableName:        aws.String("roasts"),
+		FilterExpression: aws.String("begins_with(PK, :pkval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval": &types.AttributeValueMemberS{Value: "ROAST#"},
+		},
+	}
+
+	result, err := rm.client.Scan(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	var roasts []Roast
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &roasts)
+	return roasts, err
+}
+
+func (rm *ReviewModels) GetReviewsByRoast(roastID string) ([]Review, error) {
+	input := &dynamodb.QueryInput{
+		// TODO - Don't hardcode table name
+		TableName:              aws.String("roasts"),
+		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval": &types.AttributeValueMemberS{Value: roastID},
+			":skval": &types.AttributeValueMemberS{Value: "#REVIEW#"},
+		},
+	}
+
+	result, err := rm.client.Query(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	var reviews []Review
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &reviews)
+	return reviews, err
 }

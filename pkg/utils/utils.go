@@ -24,3 +24,17 @@ func ToPascalCase(s string) string {
 
 	return pascalCase.String()
 }
+
+// CalculateAverageRating takes a slice of float64 values (ratings) and returns the average
+func CalculateAverageRating(ratings []float64) float64 {
+	if len(ratings) == 0 {
+		return 0
+	}
+
+	var sum float64
+	for _, rating := range ratings {
+		sum += rating
+	}
+
+	return sum / float64(len(ratings))
+}

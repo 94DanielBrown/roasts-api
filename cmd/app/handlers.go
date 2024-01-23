@@ -49,7 +49,7 @@ func GetReviewHandler(c echo.Context, roastID string) {
 
 }
 
-// GetAverageRatings returns a map of roast IDs to average ratings for each roast.
+// GetAverageRatings returns a map of roast IDs to average ratings for each roast
 func (app *Config) GetAverageRatings(c echo.Context) error {
 	// Fetch all roasts
 	roasts, err := app.RoastModels.GetAllRoasts()

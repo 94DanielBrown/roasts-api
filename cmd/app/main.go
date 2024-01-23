@@ -43,7 +43,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	tableName := "roc"
+	tableName := "roasts"
 
 	exists, err := db.TableExists(ctx, client, tableName)
 	if err != nil {
