@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/94DanielBrown/roc/config"
-	"github.com/94DanielBrown/roc/internal/platform/db"
-	"github.com/94DanielBrown/roc/pkg/infrastructure"
+	"github.com/94DanielBrown/roasts/config"
+	"github.com/94DanielBrown/roasts/internal/platform/db"
+	"github.com/94DanielBrown/roasts/pkg/infrastructure"
 )
 
 const webPort = 8000

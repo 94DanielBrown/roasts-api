@@ -1,4 +1,4 @@
-module github.com/94DanielBrown/roc
+module github.com/94DanielBrown/roasts
 
 go 1.21.5
 
@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.24.1
 	github.com/aws/aws-sdk-go-v2/config v1.26.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.16
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.12.16
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.27.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.4
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.12.16 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.10 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.10 // indirect

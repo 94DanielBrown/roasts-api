@@ -5,6 +5,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"strconv"
 )
 
 var client *dynamodb.Client
@@ -45,9 +47,29 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
-		TableName: aws.String("roc"),
+		TableName: aws.String("roasts"),
 	}
 
 	_, err = rm.client.PutItem(context.Background(), input)
+	return err
+}
+
+func (rm *RoastModels) UpdateAverageRating(roastID string, newRating float64) error {
+
+	// Construct the update input
+	input := &dynamodb.UpdateItemInput{
+		TableName: aws.String("roasts"),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: roastID},
+			"SK": &types.AttributeValueMemberS{Value: "#PROFILE"},
+		},
+		UpdateExpression: aws.String("set AverageRating = :r"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":r": &types.AttributeValueMemberN{Value: strconv.FormatFloat(newAverage, 'f', 2, 64)},
+		},
+	}
+
+	// Execute the update
+	_, err := rm.client.UpdateItem(context.Background(), input)
 	return err
 }

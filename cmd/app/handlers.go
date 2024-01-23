@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/94DanielBrown/roc/internal/platform/db"
-	"github.com/94DanielBrown/roc/pkg/utils"
+	"github.com/94DanielBrown/roasts/internal/platform/db"
+	"github.com/94DanielBrown/roasts/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"log/slog"
@@ -18,8 +18,8 @@ func (app *Config) ListRoasts(c echo.Context) error {
 	return c.JSON(http.StatusOK, []string{"Roast1", "Roast2"}) // Example response
 }
 
-// CreateRoast adds the new roast to DynamoDB
-func (app *Config) CreateRoast(c echo.Context) error {
+// CreateRoastHandler adds the new roast to DynamoDB
+func (app *Config) CreateRoastHandler(c echo.Context) error {
 	var newRoast db.Roast
 
 	if err := c.Bind(&newRoast); err != nil {
@@ -45,6 +45,40 @@ func (app *Config) GetRoast(c echo.Context, roastID string) error {
 	return c.JSON(http.StatusOK, "Roast")
 }
 
-func GetReview(c echo.Context, roastID string) {
+func GetReviewHandler(c echo.Context, roastID string) {
 
+}
+
+// GetAverageRatings returns a map of roast IDs to average ratings for each roast.
+func (app *Config) GetAverageRatings(c echo.Context) error {
+	// Fetch all roasts
+	roasts, err := app.RoastModels.GetAllRoasts()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch roasts"})
+	}
+
+	// Prepare a map to hold the average ratings
+	averageRatings := make(map[string]float64)
+
+	// Calculate average rating for each roast
+	for _, roast := range roasts {
+		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastID})
+		}
+
+		var totalRating float64
+		for _, review := range reviews {
+			totalRating += review.Rating
+		}
+
+		if len(reviews) > 0 {
+			averageRatings[roast.RoastID] = totalRating / float64(len(reviews))
+		} else {
+			averageRatings[roast.RoastID] = 0 // Handle case with no reviews
+		}
+	}
+
+	// Return the average ratings
+	return c.JSON(http.StatusOK, averageRatings)
 }
