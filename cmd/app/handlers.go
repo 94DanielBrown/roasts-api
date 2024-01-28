@@ -4,7 +4,6 @@ import (
 	"github.com/94DanielBrown/roasts/internal/platform/db"
 	"github.com/94DanielBrown/roasts/pkg/utils"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"log/slog"
 	"net/http"
 )
@@ -20,6 +19,7 @@ func (app *Config) ListRoasts(c echo.Context) error {
 
 // CreateRoastHandler adds the new roast to DynamoDB
 func (app *Config) CreateRoastHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
 	var newRoast db.Roast
 
 	if err := c.Bind(&newRoast); err != nil {
@@ -30,11 +30,11 @@ func (app *Config) CreateRoastHandler(c echo.Context) error {
 
 	newRoast.RoastID = "Roast#" + utils.ToPascalCase(newRoast.Name)
 
-	log.Info("Roast request received: ", newRoast)
+	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 
 	if err := app.RoastModels.CreateRoast(newRoast); err != nil {
 		errMsg := "Error creating roast"
-		slog.Error(errMsg, "err", err)
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
