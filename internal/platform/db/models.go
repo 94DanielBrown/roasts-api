@@ -21,11 +21,12 @@ type ReviewModels struct {
 
 type Roast struct {
 	// Exclude id from JSON as it's generated in API from the name
-	RoastID       string  `dynamodbav:"PK" json:"-"`
-	SK            string  `dynamodbav:"SK" json:"-"`
-	Name          string  `dynamodbav:"Name" json:"name"`
-	ImageUrl      string  `dynamodbav:"ImageUrl" json:"imageUrl"`
-	PriceRange    string  `dynamodbav:"PriceRange" json:"priceRange"`
+	RoastID    string `dynamodbav:"PK" json:"-"`
+	SK         string `dynamodbav:"SK" json:"-"`
+	Name       string `dynamodbav:"Name" json:"name"`
+	ImageUrl   string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	PriceRange string `dynamodbav:"PriceRange" json:"priceRange"`
+	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
 	AverageRating float64 `dynamodbav:"AverageRating" json:"averageRating,omitempty"`
 }
 

@@ -1,24 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"github.com/94DanielBrown/roasts/internal/platform/db"
 	"github.com/94DanielBrown/roasts/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
-func (app *Config) Home(c echo.Context) error {
-	return c.JSON(http.StatusOK, "Home")
+func (app *Config) home(c echo.Context) error {
+	return c.JSON(http.StatusOK, "home")
 }
 
-func (app *Config) ListRoasts(c echo.Context) error {
+func (app *Config) listRoasts(c echo.Context) error {
 	// Logic to list roasts
 	return c.JSON(http.StatusOK, []string{"Roast1", "Roast2"}) // Example response
 }
 
-// CreateRoastHandler adds the new roast to DynamoDB
-func (app *Config) CreateRoastHandler(c echo.Context) error {
+// createRoastHandler adds the new roast to DynamoDB
+func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newRoast db.Roast
 
@@ -28,7 +30,8 @@ func (app *Config) CreateRoastHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	newRoast.RoastID = "Roast#" + utils.ToPascalCase(newRoast.Name)
+	newRoast.RoastID = "ROAST#" + utils.ToPascalCase(newRoast.Name)
+	newRoast.SK = "#PROFILE" + time.Now().Format("02042006")
 
 	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 
@@ -38,19 +41,35 @@ func (app *Config) CreateRoastHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
+	app.Logger.Info("Roast created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newRoast)
 }
 
-func (app *Config) GetRoast(c echo.Context, roastID string) error {
+func (app *Config) getRoast(c echo.Context, roastID string) error {
 	return c.JSON(http.StatusOK, "Roast")
+}
+
+func (app *Config) getAllRoastsHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	allRoasts, err := app.RoastModels.GetAllRoasts()
+	if err != nil {
+		errMsg := "Error getting all roasts from dynamodb"
+		slog.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, "Error getting all roasts from dynamodb")
+	}
+
+	fmt.Println(allRoasts)
+
+	app.Logger.Info("All roasts returned", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, allRoasts)
 }
 
 func GetReviewHandler(c echo.Context, roastID string) {
 
 }
 
-// GetAverageRatings returns a map of roast IDs to average ratings for each roast
-func (app *Config) GetAverageRatings(c echo.Context) error {
+// getAverageRatings returns a map of roast IDs to average ratings for each roast
+func (app *Config) getAverageRatings(c echo.Context) error {
 	// Fetch all roasts
 	roasts, err := app.RoastModels.GetAllRoasts()
 	if err != nil {

@@ -12,9 +12,9 @@ func (app *Config) routes() *echo.Echo {
 	// Use custom middleware func to add correlationID to context to use in logging
 	e.Use(middleware.CorrelationIDMiddleware)
 
-	e.GET("/", app.Home)
-	e.GET("/roasts", app.ListRoasts)
-	e.POST("/roast", app.CreateRoastHandler, app.CreateRoastValidator)
+	e.GET("/", app.home)
+	e.GET("/roasts", app.getAllRoastsHandler)
+	e.POST("/roast", app.createRoastHandler, app.CreateRoastValidator)
 	e.GET("/test", func(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
