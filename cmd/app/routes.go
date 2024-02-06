@@ -13,6 +13,7 @@ func (app *Config) routes() *echo.Echo {
 	e.Use(middleware.CorrelationIDMiddleware)
 
 	e.GET("/", app.home)
+	e.GET("/roast/:roastID", app.getRoastHandler)
 	e.GET("/roasts", app.getAllRoastsHandler)
 	e.POST("/roast", app.createRoastHandler, app.CreateRoastValidator)
 	e.GET("/test", func(c echo.Context) error {

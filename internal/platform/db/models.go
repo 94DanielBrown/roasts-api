@@ -85,6 +85,37 @@ func (rm *RoastModels) UpdateAverageRating(roastID string, newAverage float64) e
 	return err
 }
 
+// GetRoastsById gets
+func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
+	input := &dynamodb.QueryInput{
+		// TODO - Don't hardcode table name
+		TableName:              aws.String("roasts"),
+		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval": &types.AttributeValueMemberS{Value: roastPrefix},
+			":skval": &types.AttributeValueMemberS{Value: "#PROFILE"},
+		},
+	}
+
+	// TODO - Should probably pass ctx through rather than use background
+	result, err := rm.client.Query(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Items) == 0 {
+		return nil, nil
+	}
+
+	var roast Roast
+	err = attributevalue.UnmarshalMap(result.Items[0], &roast)
+	if err != nil {
+		return nil, err
+	}
+
+	return &roast, err
+}
+
 // GetAllRoasts performs a scan of dynamodb to get all roasts
 func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 	input := &dynamodb.ScanInput{
