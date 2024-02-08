@@ -41,6 +41,28 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, roast)
 }
 
+func (app *Config) getReviewHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	roastID := c.Param("roastID")
+	roastPrefix := "ROAST#" + roastID
+
+	// roast is a pointer here to deal with nil values being returned
+	reviews, err := app.RoastModels.GetReviewsByRoast(roastPrefix)
+	if err != nil {
+		errMsg := "Error getting roast"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	if reviews == nil {
+		app.Logger.Info("No reviews returned", "correlationID", correlationId)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "Reviews not found"})
+	}
+
+	app.Logger.Info("Reviews returned", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, reviews)
+}
+
 // createRoastHandler adds the new roast to DynamoDB
 func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
