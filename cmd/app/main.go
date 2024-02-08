@@ -30,6 +30,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	for _, env := range os.Environ() {
+		fmt.Println(env)
+	}
+
 	client, err := infrastructure.ConnectToDynamo()
 	if err != nil {
 		logger.Error("Error connecting to dynamodb", "error", err)

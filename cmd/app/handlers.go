@@ -53,7 +53,7 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	}
 
 	newRoast.RoastID = "ROAST#" + utils.ToPascalCase(newRoast.Name)
-	newRoast.SK = "#PROFILE" + time.Now().Format("02042006")
+	newRoast.SK = "PROFILE#" + time.Now().Format("02042006")
 
 	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 

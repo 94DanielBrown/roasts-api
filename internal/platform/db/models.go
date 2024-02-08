@@ -2,21 +2,25 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"os"
 	"strconv"
 )
 
 var client *dynamodb.Client
 
 type RoastModels struct {
-	client *dynamodb.Client
+	client    *dynamodb.Client
+	tableName string
 }
 
 type ReviewModels struct {
-	client *dynamodb.Client
+	client    *dynamodb.Client
+	tableName string
 }
 
 type Roast struct {
@@ -41,23 +45,25 @@ type Review struct {
 }
 
 func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
-	return RoastModels{client: dynamo}
+	tn := os.Getenv("TABLE_NAME")
+	return RoastModels{client: dynamo, tableName: tn}
 }
 
 func NewReviewModels(dynamo *dynamodb.Client) ReviewModels {
-	return ReviewModels{client: dynamo}
+	tn := os.Getenv("TABLE_NAME")
+	return ReviewModels{client: dynamo, tableName: tn}
 }
 
 func (rm *RoastModels) CreateRoast(roast Roast) error {
+	fmt.Println("tablename: ", rm.tableName)
 	av, err := attributevalue.MarshalMap(roast)
 	if err != nil {
 		return err
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item: av,
-		// TODO - Don't hardcode table name
-		TableName: aws.String("roasts"),
+		Item:      av,
+		TableName: aws.String(rm.tableName),
 	}
 
 	_, err = rm.client.PutItem(context.Background(), input)
@@ -68,11 +74,10 @@ func (rm *RoastModels) UpdateAverageRating(roastID string, newAverage float64) e
 
 	// Construct the update input
 	input := &dynamodb.UpdateItemInput{
-		// TODO - Don't hardcode table name
-		TableName: aws.String("roasts"),
+		TableName: aws.String(rm.tableName),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: roastID},
-			"SK": &types.AttributeValueMemberS{Value: "#PROFILE"},
+			"SK": &types.AttributeValueMemberS{Value: "PROFILE"},
 		},
 		UpdateExpression: aws.String("set AverageRating = :r"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -88,12 +93,11 @@ func (rm *RoastModels) UpdateAverageRating(roastID string, newAverage float64) e
 // GetRoastsById gets
 func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
 	input := &dynamodb.QueryInput{
-		// TODO - Don't hardcode table name
-		TableName:              aws.String("roasts"),
+		TableName:              aws.String(rm.tableName),
 		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pkval": &types.AttributeValueMemberS{Value: roastPrefix},
-			":skval": &types.AttributeValueMemberS{Value: "#PROFILE"},
+			":skval": &types.AttributeValueMemberS{Value: "PROFILE"},
 		},
 	}
 
@@ -119,8 +123,7 @@ func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
 // GetAllRoasts performs a scan of dynamodb to get all roasts
 func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 	input := &dynamodb.ScanInput{
-		// TODO - Don't hardcode table name
-		TableName:        aws.String("roasts"),
+		TableName:        aws.String(rm.tableName),
 		FilterExpression: aws.String("begins_with(PK, :pkval)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pkval": &types.AttributeValueMemberS{Value: "ROAST#"},
@@ -139,12 +142,11 @@ func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 
 func (rm *ReviewModels) GetReviewsByRoast(roastID string) ([]Review, error) {
 	input := &dynamodb.QueryInput{
-		// TODO - Don't hardcode table name
-		TableName:              aws.String("roasts"),
+		TableName:              aws.String(rm.tableName),
 		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pkval": &types.AttributeValueMemberS{Value: roastID},
-			":skval": &types.AttributeValueMemberS{Value: "#REVIEW#"},
+			":skval": &types.AttributeValueMemberS{Value: "REVIEW#"},
 		},
 	}
 
