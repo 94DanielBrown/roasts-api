@@ -25,7 +25,8 @@ type ReviewModels struct {
 
 type Roast struct {
 	// Exclude id from JSON as it's generated in API from the name
-	RoastID    string `dynamodbav:"PK" json:"-"`
+	RoastID string `dynamodbav:"PK" json:"-"`
+	// Using date created as SK
 	SK         string `dynamodbav:"SK" json:"-"`
 	Name       string `dynamodbav:"Name" json:"name"`
 	ImageUrl   string `dynamodbav:"ImageUrl" json:"imageUrl"`
@@ -35,13 +36,14 @@ type Roast struct {
 }
 
 type Review struct {
-	RoastID  string  `dynamodbav:"PK" json:"-"`
-	SortKey  string  `dynamodbav:"SK" json:"-"`
-	UserID   string  `dynamodbav:"UserID"`
-	Rating   float64 `dynamodbav:"Rating"`
-	Comment  string  `dynamodbav:"Comment,omitempty"`
-	ReviewID string  `dynamodbav:"ReviewID"`
-	ImageUrl string  `dynamodbav:"ImageUrl" json:"imageUrl"`
+	RoastID string `dynamodbav:"PK" json:"-"`
+	// Using unique ID as SK generated from epoch time
+	SK        string `dynamodbav:"SK" json:"-"`
+	UserID    string `dynamodbav:"userID"`
+	Rating    int    `dynamodbav:"rating"`
+	Comment   string `dynamodbav:"Comment,omitempty"`
+	RoastName string `dynamodbav:"RoastName" json:"roastName"`
+	ImageUrl  string `dynamodbav:"ImageUrl" json:"imageUrl"`
 }
 
 func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
@@ -138,6 +140,22 @@ func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 	var roasts []Roast
 	err = attributevalue.UnmarshalListOfMaps(result.Items, &roasts)
 	return roasts, err
+}
+
+func (rm *ReviewModels) CreateReview(review Review) error {
+	fmt.Println("tablename: ", rm.tableName)
+	av, err := attributevalue.MarshalMap(review)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String(rm.tableName),
+	}
+
+	_, err = rm.client.PutItem(context.Background(), input)
+	return err
 }
 
 func (rm *ReviewModels) GetReviewsByRoast(roastID string) ([]Review, error) {

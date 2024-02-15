@@ -41,28 +41,6 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, roast)
 }
 
-func (app *Config) getReviewHandler(c echo.Context) error {
-	correlationId := c.Get("correlationID")
-	roastID := c.Param("roastID")
-	roastPrefix := "ROAST#" + roastID
-
-	// roast is a pointer here to deal with nil values being returned
-	reviews, err := app.RoastModels.GetReviewsByRoast(roastPrefix)
-	if err != nil {
-		errMsg := "Error getting roast"
-		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
-	}
-
-	if reviews == nil {
-		app.Logger.Info("No reviews returned", "correlationID", correlationId)
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "Reviews not found"})
-	}
-
-	app.Logger.Info("Reviews returned", "correlationID", correlationId)
-	return c.JSON(http.StatusOK, reviews)
-}
-
 // createRoastHandler adds the new roast to DynamoDB
 func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
@@ -108,8 +86,53 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, allRoasts)
 }
 
-func GetReviewHandler(c echo.Context, roastID string) {
+// createRoastHandler adds the new roast to DynamoDB
+func (app *Config) createReviewHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	var newReview db.Review
 
+	if err := c.Bind(&newReview); err != nil {
+		errMsg := "Error in binding request"
+		slog.Error(errMsg, "err", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	}
+
+	newReview.RoastID = "ROAST#" + utils.ToPascalCase(newReview.RoastName)
+	newReview.SK = "REVIEW#" + utils.GenerateReviewID()
+
+	app.Logger.Info("Review request received: ", "payload", newReview, "correlationID", correlationId)
+
+	if err := app.ReviewModels.CreateReview(newReview); err != nil {
+		errMsg := "Error creating review"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	app.Logger.Info("Review created", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, newReview)
+}
+
+// getReviewHandler gets all reviews for a roast by roastID
+func (app *Config) getReviewHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	roastID := c.Param("roastID")
+	roastPrefix := "ROAST#" + roastID
+
+	// roast is a pointer here to deal with nil values being returned
+	reviews, err := app.ReviewModels.GetReviewsByRoast(roastPrefix)
+	if err != nil {
+		errMsg := "Error getting roast"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	if reviews == nil {
+		app.Logger.Info("No reviews returned", "correlationID", correlationId)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "Reviews not found"})
+	}
+
+	app.Logger.Info("Reviews returned", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, reviews)
 }
 
 // getAverageRatings returns a map of roast IDs to average ratings for each roast
@@ -132,7 +155,7 @@ func (app *Config) getAverageRatings(c echo.Context) error {
 
 		var totalRating float64
 		for _, review := range reviews {
-			totalRating += review.Rating
+			totalRating += float64(review.Rating)
 		}
 
 		if len(reviews) > 0 {
