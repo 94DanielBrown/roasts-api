@@ -12,6 +12,8 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+.DEFAULT_GOAL := build
+
 .PHONY: all
 all: build
 
@@ -36,7 +38,7 @@ test: fmt vet ## Run tests.
 ##@ Build
 .PHONY: build
 build: fmt vet ## Build the Roasts API binary.
-	go build -o bin/roasts-api main.go
+	go build -o bin/roasts-api ./cmd/app/
 
 .PHONY: run
 run: fmt vet ## Run the Roasts API from your host.
