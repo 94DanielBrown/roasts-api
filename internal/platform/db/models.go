@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -167,14 +166,6 @@ func (rm *ReviewModels) GetReviewsByRoast(roastID string) ([]Review, error) {
 			":pkval": &types.AttributeValueMemberS{Value: roastID},
 			":skval": &types.AttributeValueMemberS{Value: "REVIEW#"},
 		},
-	}
-
-	// Debug print
-	inputJSON, err := json.MarshalIndent(input, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshaling input to JSON:", err)
-	} else {
-		fmt.Println("QueryInput:", string(inputJSON))
 	}
 
 	result, err := rm.client.Query(context.Background(), input)

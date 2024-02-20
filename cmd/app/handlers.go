@@ -86,7 +86,7 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, allRoasts)
 }
 
-// createRoastHandler adds the new roast to DynamoDB
+// createReviewHandler adds the review to DynamoDB
 func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newReview db.Review
