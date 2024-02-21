@@ -39,11 +39,13 @@ type Review struct {
 	RoastID string `dynamodbav:"PK" json:"-"`
 	// Using unique ID as SK generated from epoch time
 	SK        string `dynamodbav:"SK" json:"-"`
-	UserID    string `dynamodbav:"userID"`
 	Rating    int    `dynamodbav:"rating"`
 	Comment   string `dynamodbav:"Comment,omitempty"`
 	RoastName string `dynamodbav:"RoastName" json:"roastName"`
 	ImageUrl  string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	UserID    string `dynamodbav:"userID"`
+	FirstName string `dynamodbav:"FirstName" json:"firstName"`
+	LastName  string `dynamodbav:"LastName" json:"lastName"`
 }
 
 func NewRoastModels(dynamo *dynamodb.Client) RoastModels {

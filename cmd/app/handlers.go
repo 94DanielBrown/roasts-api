@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"github.com/94DanielBrown/roasts/internal/platform/db"
 	"github.com/94DanielBrown/roasts/pkg/utils"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
+
+type CustomClaims struct {
+	UserID    string `json:"userID"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	jwt.RegisteredClaims
+}
 
 func (app *Config) home(c echo.Context) error {
 	return c.JSON(http.StatusOK, "home")
@@ -90,6 +99,44 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newReview db.Review
+
+	// Check header and get jwt token if present
+	authHeader := c.Request().Header.Get("Authorization")
+	fmt.Println("Authorization", authHeader)
+	var tokenString string
+	if len(authHeader) > 7 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
+		tokenString = authHeader[7:]
+	}
+	if tokenString == "" {
+		errMsg := "JWT token is missing in the Authorization header"
+		app.Logger.Error(errMsg)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	}
+
+	// Parse the JWT token and extract the claims
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		// Ensure the token's algorithm matches your expected signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, http.ErrNotSupported
+		}
+		return []byte("qwertyuiopasdfghjklzxcvbnm123456"), nil // Replace with non temp key
+	})
+
+	if err != nil {
+		errMsg := "Error parsing JWT token"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	}
+
+	// Map claims from token so can be used in review
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		fmt.Println(claims.UserID)
+		newReview.UserID = claims.UserID
+		newReview.FirstName = claims.FirstName
+		newReview.LastName = claims.LastName
+	} else {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid JWT token"})
+	}
 
 	if err := c.Bind(&newReview); err != nil {
 		errMsg := "Error in binding request"
