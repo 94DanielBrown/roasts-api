@@ -130,7 +130,6 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 
 	// Map claims from token so can be used in review
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		fmt.Println(claims.UserID)
 		newReview.UserID = claims.UserID
 		newReview.FirstName = claims.FirstName
 		newReview.LastName = claims.LastName
@@ -159,8 +158,8 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, newReview)
 }
 
-// getReviewHandler gets all reviews for a roast by roastID
-func (app *Config) getReviewHandler(c echo.Context) error {
+// getReviewsHandler gets all reviews for a roast by roastID
+func (app *Config) getReviewsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	roastID := c.Param("roastID")
 	roastPrefix := "ROAST#" + roastID

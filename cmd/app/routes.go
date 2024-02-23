@@ -16,10 +16,9 @@ func (app *Config) routes() *echo.Echo {
 	e.POST("/roast", app.createRoastHandler, app.CreateRoastValidator)
 	e.GET("/roasts", app.getAllRoastsHandler)
 	e.GET("/roast/:roastID", app.getRoastHandler)
-	//	e.POST("/roast", app.createReviewHandler, app.CreateReviewValidator)
 	//Add validator
 	e.POST("/review", app.createReviewHandler, app.CreateReviewValidator)
-	e.GET("/reviews/:roastID", app.getReviewHandler)
+	e.GET("/reviews/:roastID", app.getReviewsHandler)
 	e.GET("/test", func(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
