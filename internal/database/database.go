@@ -1,14 +1,15 @@
-package db
+package database
 
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"os"
-	"strconv"
 )
 
 var client *dynamodb.Client

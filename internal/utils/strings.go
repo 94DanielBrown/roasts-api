@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"fmt"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -39,14 +37,6 @@ func CalculateAverageRating(ratings []float64) float64 {
 	}
 
 	return sum / float64(len(ratings))
-}
-
-func GenerateReviewID() string {
-	now := time.Now()
-	// Using Unix() for seconds since epoch, UnixNano() for nanoseconds since epoch
-	epochMillis := now.UnixNano() / int64(time.Millisecond)
-	reviewID := fmt.Sprintf("%d", epochMillis)
-	return reviewID
 }
 
 // Install "firebase.google.com/go"

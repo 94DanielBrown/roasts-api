@@ -20,42 +20,48 @@ The DynamoDB table is designed using a single-table approach with generic `PK` (
 ### Data Model
 
 - **Roasts**:
-    - `PK`: `ROAST#<RoastID>`
+- `PK`: `ROAST#
+<RoastID>`
     - `SK`: `#PROFILE`
     - Stores the main information about each roast, including name, description, and average rating.
-- **Reviews**:
-    - `PK`: `ROAST#<RoastID>` (same as the associated roast)
-    - `SK`: `#REVIEW#<UserID>#<ReviewID>`
-    - Stores individual reviews submitted by users for each roast.
+    - **Reviews**:
+    - `PK`: `ROAST#
+    <RoastID>` (same as the associated roast)
+        - `SK`: `#REVIEW#
+        <UserID>#
+            <ReviewID>`
+                - Stores individual reviews submitted by users for each roast.
 
-### Design Rationale
+                ### Design Rationale
 
-- **Single-Table Design**: Reduces the number of read/write operations, leading to cost efficiency.
-- **Scalability**: Easily scales to accommodate a growing number of roasts and reviews without the need for additional tables.
-- **Query Efficiency**: Common access patterns, such as fetching all reviews for a roast or user reviews, are efficiently supported.
+                - **Single-Table Design**: Reduces the number of read/write operations, leading to cost efficiency.
+                - **Scalability**: Easily scales to accommodate a growing number of roasts and reviews without the need
+                for additional tables.
+                - **Query Efficiency**: Common access patterns, such as fetching all reviews for a roast or user
+                reviews, are efficiently supported.
 
-## API Endpoints
+                ## API Endpoints
 
-**TODO** - Document with OpenAPI
-- `POST /roasts`: Create a new roast profile.
-- `GET /roasts/{roastId}`: Retrieve the profile and average rating of a specific roast.
-- `POST /roasts/{roastId}/reviews`: Submit a review for a roast.
-- `GET /roasts/{roastId}/reviews`: Get all reviews for a specific roast.
+                **TODO** - Document with OpenAPI
+                - `POST /roasts`: Create a new roast profile.
+                - `GET /roasts/{roastId}`: Retrieve the profile and average rating of a specific roast.
+                - `POST /roasts/{roastId}/reviews`: Submit a review for a roast.
+                - `GET /roasts/{roastId}/reviews`: Get all reviews for a specific roast.
 
-## Future Enhancements
+                ## Future Enhancements
 
-- Currently uses on-demand processing of average rating, may change to dynamodb streams or caching mostly depending on whatever I want to play around with or if it actually gets used then whatever is the logical cost efficient choice
-
-
----
-
-## Setup and Installation
-
-*Instructions on how to set up and run the project locally
-
-## Usage
+                - Currently uses on-demand processing of average rating, may change to dynamodb streams or caching
+                mostly depending on whatever I want to play around with or if it actually gets used then whatever is the
+                logical cost efficient choice
 
 
+                ---
+
+                ## Setup and Installation
+
+                *Instructions on how to set up and run the project locally
+
+                ## Usage
 
 
----
+                ---

@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/94DanielBrown/roasts/internal/platform/db"
-	"github.com/94DanielBrown/roasts/pkg/utils"
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/labstack/echo/v4"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/94DanielBrown/roasts/internal/database"
+	"github.com/94DanielBrown/roasts/internal/reviews"
+	"github.com/94DanielBrown/roasts/internal/utils"
+
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/labstack/echo/v4"
 )
 
 type CustomClaims struct {
@@ -53,7 +56,7 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 // createRoastHandler adds the new roast to DynamoDB
 func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
-	var newRoast db.Roast
+	var newRoast database.Roast
 
 	if err := c.Bind(&newRoast); err != nil {
 		errMsg := "Error in binding request"
@@ -98,7 +101,7 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 // createReviewHandler adds the review to DynamoDB
 func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
-	var newReview db.Review
+	var newReview database.Review
 
 	// Check header and get jwt token if present
 	authHeader := c.Request().Header.Get("Authorization")
@@ -144,7 +147,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	}
 
 	newReview.RoastID = "ROAST#" + utils.ToPascalCase(newReview.RoastName)
-	newReview.SK = "REVIEW#" + utils.GenerateReviewID()
+	newReview.SK = "REVIEW#" + reviews.GenerateID()
 
 	app.Logger.Info("Review request received: ", "payload", newReview, "correlationID", correlationId)
 

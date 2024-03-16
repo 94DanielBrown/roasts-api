@@ -1,14 +1,15 @@
-package infrastructure
+package awsconfig
 
 import (
 	"context"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"os"
 )
 
-func NewAwsConfig() (aws.Config, error) {
+func NewConfig() (aws.Config, error) {
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	awsRegion := os.Getenv("AWS_REGION")
