@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -12,11 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-var client *dynamodb.Client
-
 type RoastModels struct {
 	client    *dynamodb.Client
 	tableName string
+	logger    *slog.Logger
 }
 
 type ReviewModels struct {
@@ -28,30 +27,48 @@ type Roast struct {
 	// Exclude id from JSON as it's generated in API from the name
 	RoastID string `dynamodbav:"PK" json:"-"`
 	// Using date created as SK
-	SK         string `dynamodbav:"SK" json:"-"`
-	Name       string `dynamodbav:"Name" json:"name"`
-	ImageUrl   string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	PriceRange string `dynamodbav:"PriceRange" json:"priceRange"`
+	SK          string `dynamodbav:"SK" json:"-"`
+	Name        string `dynamodbav:"Name" json:"name"`
+	ImageUrl    string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
+	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
 	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
-	AverageRating float64 `dynamodbav:"AverageRating" json:"averageRating,omitempty"`
+	OverallRating           float64 `dynamodbav:"OverallRating" json:"overallRating,omitempty"`
+	MeatRating              float64 `dynamodbav:"meatRating" json:"meatRating,omitempty"`
+	PotatoesRating          float64 `dynamodbav:"PotatoesRating" json:"potatoesRating,omitempty"`
+	VegRating               float64 `dynamodbav:"VegRating" json:"vegRating,omitempty"`
+	GravyRating             float64 `dynamodbav:"GravyRating" json:"gravyRating,omitempty"`
+	MeatPotatoesRating      float64 `dynamodbav:"MeatPotatoesRating" json:"meatPotatoesRating,omitempty"`
+	MeatVegRating           float64 `dynamodbav:"MeatVegRating" json:"meatVegRating,omitempty"`
+	MeatGravyRating         float64 `dynamodbav:"MeatGravyRating" json:"meatGravyRating,omitempty"`
+	PotatoesVegRating       float64 `dynamodbav:"PotatoesVegRating" json:"potatoesVegRating,omitempty"`
+	PotatoesGravyRating     float64 `dynamodbav:"PotatoesGravyRating" json:"potatoesGravyRating,omitempty"`
+	VegGravyRating          float64 `dynamodbav:"VegGravyRating" json:"vegGravyRating,omitempty"`
+	MeatPotatoesVegRating   float64 `dynamodbav:"MeatPotatoesVegRating" json:"meatPotatoesVegRating,omitempty"`
+	MeatPotatoesGravyRating float64 `dynamodbav:"MeatPotatoesGravyRating" json:"meatPotatoesGravyRating,omitempty"`
+	MeatVegGravyRating      float64 `dynamodbav:"MeatVegGravyRating" json:"meatVegGravyRating,omitempty"`
 }
 
 type Review struct {
 	RoastID string `dynamodbav:"PK" json:"-"`
 	// Using unique ID as SK generated from epoch time
-	SK        string `dynamodbav:"SK" json:"-"`
-	Rating    int    `dynamodbav:"rating"`
-	Comment   string `dynamodbav:"Comment,omitempty"`
-	RoastName string `dynamodbav:"RoastName" json:"roastName"`
-	ImageUrl  string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	UserID    string `dynamodbav:"userID"`
-	FirstName string `dynamodbav:"FirstName" json:"firstName"`
-	LastName  string `dynamodbav:"LastName" json:"lastName"`
+	SK             string `dynamodbav:"SK" json:"-"`
+	OverallRating  int    `dynamodbav:"rating"`
+	MeatRating     int    `dynamodbav:"MeatRating" json:"meatRating,omitempty"`
+	PotatoesRating int    `dynamodbav:"PotatoesRating" json:"potatoesRating,omitempty"`
+	VegRating      int    `dynamodbav:"VegRating" json:"vegRating,omitempty"`
+	GravyRating    int    `dynamodbav:"GravyRating" json:"gravyRating,omitempty"`
+	Comment        string `dynamodbav:"Comment,omitempty"`
+	RoastName      string `dynamodbav:"RoastName" json:"roastName"`
+	ImageUrl       string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	UserID         string `dynamodbav:"userID"`
+	FirstName      string `dynamodbav:"FirstName" json:"firstName"`
+	LastName       string `dynamodbav:"LastName" json:"lastName"`
 }
 
-func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
+func NewRoastModels(dynamo *dynamodb.Client, logger *slog.Logger) RoastModels {
 	tn := os.Getenv("TABLE_NAME")
-	return RoastModels{client: dynamo, tableName: tn}
+	return RoastModels{client: dynamo, tableName: tn, logger: logger}
 }
 
 func NewReviewModels(dynamo *dynamodb.Client) ReviewModels {
@@ -75,27 +92,52 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 	return err
 }
 
-func (rm *RoastModels) UpdateAverageRating(roastID string, newAverage float64) error {
+func (rm *RoastModels) UpdateRoast(roast *Roast) error {
+	updateExpr := "set OverallRating = :or, MeatRating = :mr, PotatoesRating = :pr, VegRating = :vr, GravyRating = :gr, ReviewCount = :rc"
 
-	// Construct the update input
-	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(rm.tableName),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: roastID},
-			"SK": &types.AttributeValueMemberS{Value: "PROFILE"},
-		},
-		UpdateExpression: aws.String("set AverageRating = :r"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":r": &types.AttributeValueMemberN{Value: strconv.FormatFloat(newAverage, 'f', 2, 64)},
-		},
+	exprAttrValues, err := attributevalue.MarshalMap(map[string]interface{}{
+		":or":   roast.OverallRating,
+		":mr":   roast.MeatRating,
+		":pr":   roast.PotatoesRating,
+		":vr":   roast.VegRating,
+		":gr":   roast.GravyRating,
+		":mpr":  roast.MeatPotatoesRating,
+		":mvr":  roast.MeatVegRating,
+		":mgr":  roast.MeatGravyRating,
+		":pvr":  roast.PotatoesVegRating,
+		":pgr":  roast.PotatoesGravyRating,
+		":vgr":  roast.VegGravyRating,
+		":mprv": roast.MeatPotatoesVegRating,
+		":mpgr": roast.MeatPotatoesGravyRating,
+		":mvg":  roast.MeatVegGravyRating,
+		":rc":   roast.ReviewCount,
+	})
+	// TODO - Wrap errors up stack
+	if err != nil {
+		rm.logger.Error("Error marshalling attribute values for update", "error", err)
+		return err
 	}
 
-	// Execute the update
-	_, err := rm.client.UpdateItem(context.Background(), input)
-	return err
+	// Construct the input for the UpdateItem operation
+	input := &dynamodb.UpdateItemInput{
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: roast.RoastID},
+			"SK": &types.AttributeValueMemberS{Value: roast.SK},
+		},
+		TableName:                 aws.String(rm.tableName),
+		UpdateExpression:          aws.String(updateExpr),
+		ExpressionAttributeValues: exprAttrValues,
+		ReturnValues:              types.ReturnValueUpdatedNew,
+	}
+
+	_, err = rm.client.UpdateItem(context.Background(), input)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// GetRoastsById gets
+// GetRoastByPrefix retrieves a roast by its prefix
 func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(rm.tableName),

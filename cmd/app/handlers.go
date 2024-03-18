@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/94DanielBrown/roasts/internal/database"
+	"github.com/94DanielBrown/roasts/internal/ratings"
 	"github.com/94DanielBrown/roasts/internal/reviews"
 	"github.com/94DanielBrown/roasts/internal/utils"
 
@@ -157,6 +158,14 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
+	// TODO - Send to queue for retry or in the meantime just have a scheduled job to rectify inconsistencies
+	go func() {
+		err := ratings.UpdateAverages(app.RoastModels, newReview.RoastID, newReview)
+		if err != nil {
+			app.Logger.Error("Error updating average rating", "err", err, "correlationID", correlationId)
+		}
+	}()
+
 	app.Logger.Info("Review created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newReview)
 }
@@ -184,36 +193,36 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, reviews)
 }
 
-// getAverageRatings returns a map of roast IDs to average ratings for each roast
-func (app *Config) getAverageRatings(c echo.Context) error {
-	// Fetch all roasts
-	roasts, err := app.RoastModels.GetAllRoasts()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch roasts"})
-	}
-
-	// Prepare a map to hold the average ratings
-	averageRatings := make(map[string]float64)
-
-	// Calculate average rating for each roast
-	for _, roast := range roasts {
-		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastID})
-		}
-
-		var totalRating float64
-		for _, review := range reviews {
-			totalRating += float64(review.Rating)
-		}
-
-		if len(reviews) > 0 {
-			averageRatings[roast.RoastID] = totalRating / float64(len(reviews))
-		} else {
-			averageRatings[roast.RoastID] = 0 // Handle case with no reviews
-		}
-	}
-
-	// Return the average ratings
-	return c.JSON(http.StatusOK, averageRatings)
-}
+//// getAverageRatings returns a map of roast IDs to average ratings for each roast
+//func (app *Config) getAverageRatings(c echo.Context) error {
+//	// Fetch all roasts
+//	roasts, err := app.RoastModels.GetAllRoasts()
+//	if err != nil {
+//		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch roasts"})
+//	}
+//
+//	// Prepare a map to hold the average ratings
+//	averageRatings := make(map[string]float64)
+//
+//	// Calculate average rating for each roast
+//	for _, roast := range roasts {
+//		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastID)
+//		if err != nil {
+//			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastID})
+//		}
+//
+//		var totalRating float64
+//		for _, review := range reviews {
+//			totalRating += float64(review.Rating)
+//		}
+//
+//		if len(reviews) > 0 {
+//			averageRatings[roast.RoastID] = totalRating / float64(len(reviews))
+//		} else {
+//			averageRatings[roast.RoastID] = 0 // Handle case with no reviews
+//		}
+//	}
+//
+//	// Return the average ratings
+//	return c.JSON(http.StatusOK, averageRatings)
+//}

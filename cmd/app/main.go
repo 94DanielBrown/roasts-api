@@ -51,7 +51,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	app := Config{
-		RoastModels:  database.NewRoastModels(client),
+		RoastModels:  database.NewRoastModels(client, logger),
 		ReviewModels: database.NewReviewModels(client),
 		Logger:       logger,
 	}
