@@ -29,7 +29,7 @@ type Roast struct {
 	// Using date created as SK
 	SK          string `dynamodbav:"SK" json:"-"`
 	Name        string `dynamodbav:"Name" json:"name"`
-	ImageUri    string `dynamodbav:"ImageUri" json:"imageUri"`
+	ImageUri    string `dynamodbav:"ImageUrl" json:"imageUrl"`
 	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
 	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
 	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
@@ -93,7 +93,9 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 }
 
 func (rm *RoastModels) UpdateRoast(roast *Roast) error {
-	updateExpr := "set OverallRating = :or, MeatRating = :mr, PotatoesRating = :pr, VegRating = :vr, GravyRating = :gr, ReviewCount = :rc"
+	updateExpr := "set OverallRating = :or, MeatRating = :mr, PotatoesRating = :pr, VegRating = :vr, GravyRating = :gr, ReviewCount = :rc, " +
+		"MeatPotatoesRating = :mpr, MeatVegRating = :mvr, MeatGravyRating = :mgr, PotatoesVegRating = :pvr, " +
+		"PotatoesGravyRating = :pgr, VegGravyRating = :vgr, MeatPotatoesVegRating = :mprv, MeatPotatoesGravyRating = :mpgr, MeatVegGravyRating = :mvg"
 
 	exprAttrValues, err := attributevalue.MarshalMap(map[string]interface{}{
 		":or":   roast.OverallRating,
@@ -114,7 +116,7 @@ func (rm *RoastModels) UpdateRoast(roast *Roast) error {
 	})
 	// TODO - Wrap errors up stack
 	if err != nil {
-		rm.logger.Error("Error marshalling attribute values for update", "error", err)
+		rm.logger.Error("error marshalling attribute values for update", "error", err)
 		return err
 	}
 

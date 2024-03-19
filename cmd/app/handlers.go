@@ -43,12 +43,12 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 	// roast is a pointer here to deal with nil values being returned
 	roast, err := app.RoastModels.GetRoastByPrefix(roastPrefix)
 	if err != nil {
-		errMsg := "Error getting roast"
+		errMsg := "error getting roast"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
-	app.Logger.Info("Roast returned", "correlationID", correlationId)
+	app.Logger.Info("roast returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, roast)
 }
 
@@ -58,7 +58,7 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	var newRoast database.Roast
 
 	if err := c.Bind(&newRoast); err != nil {
-		errMsg := "Error in binding request"
+		errMsg := "error in binding request"
 		slog.Error(errMsg, "err", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
@@ -69,12 +69,12 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 
 	if err := app.RoastModels.CreateRoast(newRoast); err != nil {
-		errMsg := "Error creating roast"
+		errMsg := "error creating roast"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
-	app.Logger.Info("Roast created", "correlationID", correlationId)
+	app.Logger.Info("roast created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newRoast)
 }
 
@@ -88,14 +88,14 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	allRoasts, err := app.RoastModels.GetAllRoasts()
 	if err != nil {
-		errMsg := "Error getting all roasts from dynamodb"
+		errMsg := "error getting all roasts from dynamodb"
 		slog.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, "Error getting all roasts from dynamodb")
+		return c.JSON(http.StatusInternalServerError, "error getting all roasts from dynamodb")
 	}
 
 	fmt.Println(allRoasts)
 
-	app.Logger.Info("All roasts returned", "correlationID", correlationId)
+	app.Logger.Info("all roasts returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, allRoasts)
 }
 
@@ -113,7 +113,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		tokenString = authHeader[7:]
 	}
 	if tokenString == "" {
-		errMsg := "JWT token is missing in the Authorization header"
+		errMsg := "jwt token is missing in the authorization header"
 		app.Logger.Error(errMsg)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
@@ -128,7 +128,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	})
 
 	if err != nil {
-		errMsg := "Error parsing JWT token"
+		errMsg := "error parsing JWT token"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
@@ -139,11 +139,11 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		newReview.FirstName = claims.FirstName
 		newReview.LastName = claims.LastName
 	} else {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid JWT token"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "invalid jwt token"})
 	}
 
 	if err := c.Bind(&newReview); err != nil {
-		errMsg := "Error in binding request"
+		errMsg := "error in binding request"
 		slog.Error(errMsg, "err", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
@@ -151,20 +151,19 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	newReview.RoastID = "ROAST#" + utils.ToPascalCase(newReview.RoastName)
 	newReview.SK = "REVIEW#" + reviews.GenerateID()
 
-	app.Logger.Info("Review request received: ", "payload", newReview, "correlationID", correlationId)
+	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
 
 	if err := app.ReviewModels.CreateReview(newReview); err != nil {
 		errMsg := "Error creating review"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-	fmt.Printf("RoastID: %v", newReview.RoastID)
 
 	// TODO - Send to queue for retry or in the meantime just have a scheduled job to rectify inconsistencies
 	go func() {
 		err := ratings.UpdateAverages(app.RoastModels, newReview)
 		if err != nil {
-			app.Logger.Error("Error updating average rating", "error", err, "correlationID", correlationId)
+			app.Logger.Error("error updating average rating", "error", err, "correlationID", correlationId)
 		}
 	}()
 
