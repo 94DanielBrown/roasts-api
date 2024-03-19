@@ -41,13 +41,8 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 	roast, err := app.RoastModels.GetRoastByPrefix(roastPrefix)
 	if err != nil {
 		errMsg := "Error getting roast"
-		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
-	}
-
-	if roast == nil {
-		app.Logger.Info("No roast returned", "correlationID", correlationId)
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "Roast not found"})
 	}
 
 	app.Logger.Info("Roast returned", "correlationID", correlationId)
