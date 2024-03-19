@@ -104,6 +104,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newReview database.Review
 
+	fmt.Println("Creating review")
 	// Check header and get jwt token if present
 	authHeader := c.Request().Header.Get("Authorization")
 	fmt.Println("Authorization", authHeader)
@@ -157,12 +158,13 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
+	fmt.Printf("RoastID: %v", newReview.RoastID)
 
 	// TODO - Send to queue for retry or in the meantime just have a scheduled job to rectify inconsistencies
 	go func() {
-		err := ratings.UpdateAverages(app.RoastModels, newReview.RoastID, newReview)
+		err := ratings.UpdateAverages(app.RoastModels, newReview)
 		if err != nil {
-			app.Logger.Error("Error updating average rating", "err", err, "correlationID", correlationId)
+			app.Logger.Error("Error updating average rating", "error", err, "correlationID", correlationId)
 		}
 	}()
 
@@ -176,21 +178,20 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 	roastID := c.Param("roastID")
 	roastPrefix := "ROAST#" + roastID
 
-	// roast is a pointer here to deal with nil values being returned
-	reviews, err := app.ReviewModels.GetReviewsByRoast(roastPrefix)
+	roastReviews, err := app.ReviewModels.GetReviewsByRoast(roastPrefix)
 	if err != nil {
 		errMsg := "Error getting roast"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
-	if reviews == nil {
-		app.Logger.Info("No reviews returned", "correlationID", correlationId)
+	if roastReviews == nil {
+		app.Logger.Info("No roastReviews returned", "correlationID", correlationId)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "Reviews not found"})
 	}
 
 	app.Logger.Info("Reviews returned", "correlationID", correlationId)
-	return c.JSON(http.StatusOK, reviews)
+	return c.JSON(http.StatusOK, roastReviews)
 }
 
 //// getAverageRatings returns a map of roast IDs to average ratings for each roast

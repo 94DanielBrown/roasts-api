@@ -29,7 +29,7 @@ type Roast struct {
 	// Using date created as SK
 	SK          string `dynamodbav:"SK" json:"-"`
 	Name        string `dynamodbav:"Name" json:"name"`
-	ImageUrl    string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	ImageUri    string `dynamodbav:"ImageUri" json:"imageUri"`
 	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
 	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
 	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
@@ -53,15 +53,15 @@ type Review struct {
 	RoastID string `dynamodbav:"PK" json:"-"`
 	// Using unique ID as SK generated from epoch time
 	SK             string `dynamodbav:"SK" json:"-"`
-	OverallRating  int    `dynamodbav:"rating"`
-	MeatRating     int    `dynamodbav:"MeatRating" json:"meatRating,omitempty"`
-	PotatoesRating int    `dynamodbav:"PotatoesRating" json:"potatoesRating,omitempty"`
-	VegRating      int    `dynamodbav:"VegRating" json:"vegRating,omitempty"`
-	GravyRating    int    `dynamodbav:"GravyRating" json:"gravyRating,omitempty"`
-	Comment        string `dynamodbav:"Comment,omitempty"`
+	OverallRating  int    `dynamodbav:"OverallRating" json:"overallRating"`
+	MeatRating     int    `dynamodbav:"MeatRating" json:"meatRating"`
+	PotatoesRating int    `dynamodbav:"PotatoesRating" json:"potatoesRating"`
+	VegRating      int    `dynamodbav:"VegRating" json:"vegRating"`
+	GravyRating    int    `dynamodbav:"GravyRating" json:"gravyRating"`
+	Comment        string `dynamodbav:"Comment,omitempty" json:"comment,omitempty"`
 	RoastName      string `dynamodbav:"RoastName" json:"roastName"`
 	ImageUrl       string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	UserID         string `dynamodbav:"userID"`
+	UserID         string `dynamodbav:"userID" json:"userID"`
 	FirstName      string `dynamodbav:"FirstName" json:"firstName"`
 	LastName       string `dynamodbav:"LastName" json:"lastName"`
 }
@@ -154,6 +154,9 @@ func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
 		return nil, err
 	}
 
+	n := len(result.Items)
+	fmt.Println(n)
+
 	if len(result.Items) == 0 {
 		return nil, nil
 	}
@@ -188,7 +191,6 @@ func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 }
 
 func (rm *ReviewModels) CreateReview(review Review) error {
-	fmt.Println("tablename: ", rm.tableName)
 	av, err := attributevalue.MarshalMap(review)
 	if err != nil {
 		return err

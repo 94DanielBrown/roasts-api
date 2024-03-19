@@ -18,7 +18,7 @@ func CreateReviewValidator(next echo.HandlerFunc) echo.HandlerFunc {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			errMsg := "Failed to read request body"
-			slog.Error(errMsg, "err", err)
+			slog.Error(errMsg, "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 		}
 
@@ -26,22 +26,27 @@ func CreateReviewValidator(next echo.HandlerFunc) echo.HandlerFunc {
 		req.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		var reqData struct {
-			UserID    string `json:"userID"`
-			Rating    int    `json:"rating"`
-			Comment   string `json:"comment,omitempty"`
-			RoastName string `json:"roastName"`
-			ImageUrl  string `json:"imageUrl"`
+			UserID         string `json:"userID"`
+			Rating         int    `json:"rating"`
+			Comment        string `json:"comment,omitempty"`
+			RoastName      string `json:"roastName"`
+			ImageUrl       string `json:"imageUrl"`
+			OverallRating  int    `json:"overallRating"`
+			MeatRating     int    `json:"meatRating"`
+			PotatoesRating int    `json:"potatoesRating"`
+			VegRating      int    `json:"vegRating"`
+			GravyRating    int    `json:"gravyRating"`
 		}
 
 		if err := json.Unmarshal(body, &reqData); err != nil {
 			errMsg := "Error unmarshalling JSON"
-			slog.Error(errMsg, "err", err)
+			slog.Error(errMsg, "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 		}
 
 		if reqData.Rating < 1 || reqData.Rating > 10 {
 			errMsg := "Invalid rating"
-			slog.Error(errMsg, "err", err)
+			slog.Error(errMsg, "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 		}
 

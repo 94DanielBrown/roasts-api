@@ -1,7 +1,6 @@
 package roasts
 
 import (
-	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -24,18 +23,20 @@ func CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc {
 
 		req.Body = io.NopCloser(strings.NewReader(string(body)))
 
-		var reqData struct {
-			RoastID    string `json:"roastId"`
-			PriceRange string `json:"priceRange"`
-			Name       string `json:"name"`
-			ImageUrl   string `json:"imageUrl"`
-		}
-
-		if err := json.Unmarshal(body, &reqData); err != nil {
-			errMsg := "Error unmarshalling JSON"
-			slog.Error(errMsg, "err", err)
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-		}
+		//TODO - add validation for the request body
+		//var reqData struct {
+		//	RoastID    string `json:"roastId"`
+		//	PriceRange string `json:"priceRange"`
+		//	Name       string `json:"name"`
+		//	ImageUrl   string `json:"imageUrl"`
+		//}
+		//slog.Info("Request Body: ", "body", req.Body)
+		//
+		//if err := json.Unmarshal(body, &reqData); err != nil {
+		//	errMsg := "error creating roast due to unmarshalling of json"
+		//	slog.Error(errMsg, "error", err)
+		//	return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+		//}
 
 		return next(c)
 	}

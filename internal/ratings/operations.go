@@ -1,12 +1,18 @@
 package ratings
 
-import "github.com/94DanielBrown/roasts/internal/database"
+import (
+	"errors"
 
-func UpdateAverages(roastModels database.RoastModels, roastID string, newReview database.Review) error {
-	// Step 1: Fetch the existing roast item
-	roast, err := roastModels.GetRoastByPrefix(roastID)
+	"github.com/94DanielBrown/roasts/internal/database"
+)
+
+func UpdateAverages(roastModels database.RoastModels, newReview database.Review) error {
+	roast, err := roastModels.GetRoastByPrefix(newReview.RoastID)
 	if err != nil {
 		return err
+	}
+	if roast == nil {
+		return errors.New("no roast found")
 	}
 
 	newCount := roast.ReviewCount + 1
