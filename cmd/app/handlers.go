@@ -23,15 +23,18 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+// home returns a simple welcome message to check if the server is running properly
 func (app *Config) home(c echo.Context) error {
 	return c.JSON(http.StatusOK, "home")
 }
 
+// listRoasts returns a dummy list atm
 func (app *Config) listRoasts(c echo.Context) error {
 	// Logic to list roasts
 	return c.JSON(http.StatusOK, []string{"Roast1", "Roast2"}) // Example response
 }
 
+// getRoastHandlers gets an individual roast by roastID
 func (app *Config) getRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	roastID := c.Param("roastID")
@@ -75,10 +78,12 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, newRoast)
 }
 
+// getRoat just returns a string atm
 func (app *Config) getRoast(c echo.Context, roastID string) error {
 	return c.JSON(http.StatusOK, "Roast")
 }
 
+// getAllRoastsHandler gets all roasts from DynamoDB
 func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	allRoasts, err := app.RoastModels.GetAllRoasts()
