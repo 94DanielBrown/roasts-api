@@ -63,8 +63,9 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	newRoast.RoastID = "ROAST#" + utils.ToPascalCase(newRoast.Name)
+	newRoast.RoastPrefix = "ROAST#" + utils.ToPascalCase(newRoast.Name)
 	newRoast.SK = "PROFILE#" + time.Now().Format("02042006")
+	newRoast.Id = utils.ToPascalCase(newRoast.Name)
 
 	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 
@@ -206,9 +207,9 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 //
 //	// Calculate average rating for each roast
 //	for _, roast := range roasts {
-//		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastID)
+//		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastPrefix)
 //		if err != nil {
-//			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastID})
+//			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastPrefix})
 //		}
 //
 //		var totalRating float64
@@ -217,9 +218,9 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 //		}
 //
 //		if len(reviews) > 0 {
-//			averageRatings[roast.RoastID] = totalRating / float64(len(reviews))
+//			averageRatings[roast.RoastPrefix] = totalRating / float64(len(reviews))
 //		} else {
-//			averageRatings[roast.RoastID] = 0 // Handle case with no reviews
+//			averageRatings[roast.RoastPrefix] = 0 // Handle case with no reviews
 //		}
 //	}
 //

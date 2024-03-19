@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -24,10 +25,10 @@ type ReviewModels struct {
 }
 
 type Roast struct {
-	// Exclude id from JSON as it's generated in API from the name
-	RoastID string `dynamodbav:"PK" json:"-"`
+	RoastPrefix string `dynamodbav:"PK" json:"prefix"`
 	// Using date created as SK
 	SK          string `dynamodbav:"SK" json:"-"`
+	Id          string `dynamodbav:"Id" json:"id"`
 	Name        string `dynamodbav:"Name" json:"name"`
 	ImageUri    string `dynamodbav:"ImageUrl" json:"imageUrl"`
 	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
@@ -50,6 +51,7 @@ type Roast struct {
 }
 
 type Review struct {
+	// TODO - will need a unique ID returned per review for FlatList key
 	RoastID string `dynamodbav:"PK" json:"-"`
 	// Using unique ID as SK generated from epoch time
 	SK             string `dynamodbav:"SK" json:"-"`
@@ -123,7 +125,7 @@ func (rm *RoastModels) UpdateRoast(roast *Roast) error {
 	// Construct the input for the UpdateItem operation
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: roast.RoastID},
+			"PK": &types.AttributeValueMemberS{Value: roast.RoastPrefix},
 			"SK": &types.AttributeValueMemberS{Value: roast.SK},
 		},
 		TableName:                 aws.String(rm.tableName),
@@ -187,9 +189,19 @@ func (rm *RoastModels) GetAllRoasts() ([]Roast, error) {
 		return nil, err
 	}
 
+	var items []Roast
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &items)
+	if err != nil {
+		return nil, err
+	}
+
 	var roasts []Roast
-	err = attributevalue.UnmarshalListOfMaps(result.Items, &roasts)
-	return roasts, err
+	for _, item := range items {
+		if strings.HasPrefix(item.SK, "PROFILE") {
+			roasts = append(roasts, item)
+		}
+	}
+	return roasts, nil
 }
 
 func (rm *ReviewModels) CreateReview(review Review) error {
