@@ -155,7 +155,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
 
 	if err := app.ReviewModels.CreateReview(newReview); err != nil {
-		errMsg := "Error creating review"
+		errMsg := "error creating review"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
@@ -168,7 +168,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		}
 	}()
 
-	app.Logger.Info("Review created", "correlationID", correlationId)
+	app.Logger.Info("review created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newReview)
 }
 
@@ -180,17 +180,17 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 
 	roastReviews, err := app.ReviewModels.GetReviewsByRoast(roastPrefix)
 	if err != nil {
-		errMsg := "Error getting roast"
+		errMsg := "error getting roast"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
 	if roastReviews == nil {
 		app.Logger.Info("No roastReviews returned", "correlationID", correlationId)
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "Reviews not found"})
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "reviews not found"})
 	}
 
-	app.Logger.Info("Reviews returned", "correlationID", correlationId)
+	app.Logger.Info("reviews returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, roastReviews)
 }
 

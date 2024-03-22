@@ -158,9 +158,6 @@ func (rm *RoastModels) GetRoastByPrefix(roastPrefix string) (*Roast, error) {
 		return nil, err
 	}
 
-	n := len(result.Items)
-	fmt.Println(n)
-
 	if len(result.Items) == 0 {
 		return nil, nil
 	}
