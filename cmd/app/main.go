@@ -6,16 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/94DanielBrown/awsapp"
+	"github.com/94DanielBrown/roasts/config"
 	"github.com/94DanielBrown/roasts/internal/database"
 	"github.com/94DanielBrown/roasts/internal/reviews"
 	"github.com/94DanielBrown/roasts/internal/roasts"
 	"github.com/94DanielBrown/roasts/internal/utils"
-	"github.com/94DanielBrown/roasts/pkg/dynamo"
 	"github.com/labstack/echo/v4"
-
-	"github.com/94DanielBrown/roasts/config"
 )
 
 const webPort = 8000
@@ -35,19 +33,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO - env variable for table name
+	tableName := "roasts"
+
 	ctx := context.Background()
 
-	if err := run(ctx, logger); err != nil {
-		logger.Error("Failed to startup", "error", err)
-		os.Exit(1)
-	}
-}
-
-func run(ctx context.Context, logger *slog.Logger) error {
-	client, err := dynamo.Connect()
+	client, table, err := awsapp.InitDynamo(ctx, tableName)
 	if err != nil {
-		logger.Error("Error connecting to dynamodb", "error", err)
+		logger.Error("error setting up app", "error", err)
 		os.Exit(1)
+	} else {
+		logger.Info(table)
 	}
 
 	app := Config{
@@ -56,30 +52,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		Logger:       logger,
 	}
 
-	tableName := "roasts"
-
-	exists, err := dynamo.Exists(ctx, client, tableName)
-	if err != nil {
-		return fmt.Errorf("error checking if dynamodb table exists: %w", err)
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	if !exists {
-		err = dynamo.Create(ctx, client, tableName)
-		if err != nil {
-			return fmt.Errorf("error creating dynamodb table: %w", err)
-		}
-		logger.Info("table created successfully")
-	} else {
-		logger.Info("table already exists", "tableName", tableName)
-	}
-
 	e := app.routes()
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", webPort)))
-
-	return nil
 }
 
 func (app *Config) routes() *echo.Echo {
