@@ -57,10 +57,10 @@ func CalculateAverageRating(ratings []float64) float64 {
 //		return nil, fmt.Errorf("error getting Auth client: %v", err)
 //	}
 //
-//	// Verify the ID token
+//	// Verify the RoastID token
 //	token, err := client.VerifyIDToken(ctx, idToken)
 //	if err != nil {
-//		return nil, fmt.Errorf("error verifying ID token: %v", err)
+//		return nil, fmt.Errorf("error verifying RoastID token: %v", err)
 //	}
 //
 //	return token, nil

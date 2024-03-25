@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// GenerateID returns the current epoch time as a string to be used as an ID for a review
+// GenerateID returns the current epoch time as a string to be used as an RoastID for a review
 func GenerateID() string {
 	now := time.Now()
 	// Using Unix() for seconds since epoch, UnixNano() for nanoseconds since epoch

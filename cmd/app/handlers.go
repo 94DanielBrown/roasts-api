@@ -63,9 +63,10 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	newRoast.RoastPrefix = "ROAST#" + utils.ToPascalCase(newRoast.Name)
+	RoastID := utils.ToPascalCase(newRoast.Name)
+	newRoast.RoastID = RoastID
+	newRoast.RoastKey = "ROAST#" + RoastID
 	newRoast.SK = "PROFILE#" + time.Now().Format("02042006")
-	newRoast.Id = utils.ToPascalCase(newRoast.Name)
 
 	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
 
@@ -79,12 +80,12 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, newRoast)
 }
 
-// getRoat just returns a string atm
+// getRoast just returns a string atm, may not be required
 func (app *Config) getRoast(c echo.Context, roastID string) error {
 	return c.JSON(http.StatusOK, "Roast")
 }
 
-// getAllRoastsHandler gets all roasts from DynamoDB
+// getAllRoastsHandler gets and returns all roasts from DynamoDB
 func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	allRoasts, err := app.RoastModels.GetAllRoasts()
@@ -93,8 +94,6 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 		slog.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, "error getting all roasts from dynamodb")
 	}
-
-	fmt.Println(allRoasts)
 
 	app.Logger.Info("all roasts returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, allRoasts)
@@ -105,7 +104,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newReview database.Review
 
-	fmt.Println("Creating review")
+	// TODO - auth supabase jwt token
 	// Check header and get jwt token if present
 	authHeader := c.Request().Header.Get("Authorization")
 	fmt.Println("Authorization", authHeader)
@@ -130,7 +129,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 
 	if err != nil {
 		errMsg := "error parsing JWT token"
-		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
@@ -149,7 +148,9 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	newReview.RoastID = "ROAST#" + utils.ToPascalCase(newReview.RoastName)
+	RoastID := utils.ToPascalCase(newReview.RoastName)
+	newReview.RoastID = RoastID
+	newReview.RoastKey = "ROAST#" + RoastID
 	newReview.SK = "REVIEW#" + reviews.GenerateID()
 
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
@@ -176,9 +177,9 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 func (app *Config) getReviewsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	roastID := c.Param("roastID")
-	roastPrefix := "ROAST#" + roastID
+	roastKey := "ROAST#" + roastID
 
-	roastReviews, err := app.ReviewModels.GetReviewsByRoast(roastPrefix)
+	roastReviews, err := app.ReviewModels.GetReviewsByRoast(roastKey)
 	if err != nil {
 		errMsg := "error getting roast"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
@@ -186,44 +187,10 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 	}
 
 	if roastReviews == nil {
-		app.Logger.Info("No roastReviews returned", "correlationID", correlationId)
+		app.Logger.Info("no roast reviews returned due to no reviews", "correlationID", correlationId)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "reviews not found"})
 	}
 
-	app.Logger.Info("reviews returned", "correlationID", correlationId)
+	app.Logger.Info("reviews returned", "roastID", roastID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, roastReviews)
 }
-
-//// getAverageRatings returns a map of roast IDs to average ratings for each roast
-//func (app *Config) getAverageRatings(c echo.Context) error {
-//	// Fetch all roasts
-//	roasts, err := app.RoastModels.GetAllRoasts()
-//	if err != nil {
-//		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch roasts"})
-//	}
-//
-//	// Prepare a map to hold the average ratings
-//	averageRatings := make(map[string]float64)
-//
-//	// Calculate average rating for each roast
-//	for _, roast := range roasts {
-//		reviews, err := app.ReviewModels.GetReviewsByRoast(roast.RoastPrefix)
-//		if err != nil {
-//			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch reviews for roast " + roast.RoastPrefix})
-//		}
-//
-//		var totalRating float64
-//		for _, review := range reviews {
-//			totalRating += float64(review.Rating)
-//		}
-//
-//		if len(reviews) > 0 {
-//			averageRatings[roast.RoastPrefix] = totalRating / float64(len(reviews))
-//		} else {
-//			averageRatings[roast.RoastPrefix] = 0 // Handle case with no reviews
-//		}
-//	}
-//
-//	// Return the average ratings
-//	return c.JSON(http.StatusOK, averageRatings)
-//}

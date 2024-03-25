@@ -7,7 +7,7 @@ import (
 )
 
 func UpdateAverages(roastModels database.RoastModels, newReview database.Review) error {
-	roast, err := roastModels.GetRoastByPrefix(newReview.RoastID)
+	roast, err := roastModels.GetRoastByPrefix(newReview.RoastKey)
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ func CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc {
 
 		//TODO - add validation for the request body
 		//var reqData struct {
-		//	RoastPrefix    string `json:"roastId"`
+		//	RoastKey    string `json:"roastId"`
 		//	PriceRange string `json:"priceRange"`
 		//	Name       string `json:"name"`
 		//	ImageUrl   string `json:"imageUrl"`

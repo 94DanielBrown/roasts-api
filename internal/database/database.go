@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -25,10 +24,10 @@ type ReviewModels struct {
 }
 
 type Roast struct {
-	RoastPrefix string `dynamodbav:"PK" json:"prefix"`
+	RoastKey string `dynamodbav:"PK" json:"-"`
 	// Using date created as SK
 	SK          string `dynamodbav:"SK" json:"-"`
-	Id          string `dynamodbav:"Id" json:"id"`
+	RoastID     string `dynamodbav:"RoastID" json:"id"`
 	Name        string `dynamodbav:"Name" json:"name"`
 	ImageUri    string `dynamodbav:"ImageUrl" json:"imageUrl"`
 	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
@@ -51,10 +50,11 @@ type Roast struct {
 }
 
 type Review struct {
-	// TODO - will need a unique ID returned per review for FlatList key
-	RoastID string `dynamodbav:"PK" json:"-"`
-	// Using unique ID as SK generated from epoch time
+	// TODO - will need a unique RoastID returned per review for FlatList key
+	RoastKey string `dynamodbav:"PK" json:"-"`
+	// Using unique RoastID as SK generated from epoch time
 	SK             string `dynamodbav:"SK" json:"-"`
+	RoastID        string `dynamodbav:"RoastID" json:"id"`
 	OverallRating  int    `dynamodbav:"OverallRating" json:"overallRating"`
 	MeatRating     int    `dynamodbav:"MeatRating" json:"meatRating"`
 	PotatoesRating int    `dynamodbav:"PotatoesRating" json:"potatoesRating"`
@@ -79,7 +79,6 @@ func NewReviewModels(dynamo *dynamodb.Client) ReviewModels {
 }
 
 func (rm *RoastModels) CreateRoast(roast Roast) error {
-	fmt.Println("tablename: ", rm.tableName)
 	av, err := attributevalue.MarshalMap(roast)
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func (rm *RoastModels) UpdateRoast(roast *Roast) error {
 	// Construct the input for the UpdateItem operation
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: roast.RoastPrefix},
+			"PK": &types.AttributeValueMemberS{Value: roast.RoastKey},
 			"SK": &types.AttributeValueMemberS{Value: roast.SK},
 		},
 		TableName:                 aws.String(rm.tableName),
@@ -216,12 +215,12 @@ func (rm *ReviewModels) CreateReview(review Review) error {
 	return err
 }
 
-func (rm *ReviewModels) GetReviewsByRoast(roastID string) ([]Review, error) {
+func (rm *ReviewModels) GetReviewsByRoast(roastKey string) ([]Review, error) {
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(rm.tableName),
 		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pkval": &types.AttributeValueMemberS{Value: roastID},
+			":pkval": &types.AttributeValueMemberS{Value: roastKey},
 			":skval": &types.AttributeValueMemberS{Value: "REVIEW#"},
 		},
 	}
