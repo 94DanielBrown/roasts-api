@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 	"os"
 	"strings"
 
@@ -15,10 +15,14 @@ import (
 type RoastModels struct {
 	client    *dynamodb.Client
 	tableName string
-	logger    *slog.Logger
 }
 
 type ReviewModels struct {
+	client    *dynamodb.Client
+	tableName string
+}
+
+type UserModels struct {
 	client    *dynamodb.Client
 	tableName string
 }
@@ -68,14 +72,30 @@ type Review struct {
 	LastName       string `dynamodbav:"LastName" json:"lastName"`
 }
 
-func NewRoastModels(dynamo *dynamodb.Client, logger *slog.Logger) RoastModels {
+type User struct {
+	UserID          string   `dynamodbav:"PK" json:"userID"`
+	SK              string   `dynamodbav:"SK" json:"-"`
+	FirstName       string   `dynamodbav:"FirstName" json:"firstName,omitempty"`
+	LastName        string   `dynamodbav:"LastName" json:"lastName,omitempty"`
+	Email           string   `dynamodbav:"Email" json:"email,omitEmpty"`
+	DisplayName     string   `dynamodbav:"DisplayName" json:"displayName,omitempty"`
+	ProfilePhotoUrl string   `dynamodbav:"ProfilePhotoUrl" json:"profilePhotoUrl,omitempty"`
+	SavedRoasts     []string `dynamodbav:"SavedRoasts" json:"savedRoasts,omitempty"`
+}
+
+func NewRoastModels(dynamo *dynamodb.Client) RoastModels {
 	tn := os.Getenv("TABLE_NAME")
-	return RoastModels{client: dynamo, tableName: tn, logger: logger}
+	return RoastModels{client: dynamo, tableName: tn}
 }
 
 func NewReviewModels(dynamo *dynamodb.Client) ReviewModels {
 	tn := os.Getenv("TABLE_NAME")
 	return ReviewModels{client: dynamo, tableName: tn}
+}
+
+func NewUserModels(dynamo *dynamodb.Client) UserModels {
+	tn := os.Getenv("TABLE_NAME")
+	return UserModels{client: dynamo, tableName: tn}
 }
 
 func (rm *RoastModels) CreateRoast(roast Roast) error {
@@ -117,8 +137,7 @@ func (rm *RoastModels) UpdateRoast(roast *Roast) error {
 	})
 	// TODO - Wrap errors up stack
 	if err != nil {
-		rm.logger.Error("error marshalling attribute values for update", "error", err)
-		return err
+		return fmt.Errorf("error marshalling attribute values for update: %w", err)
 	}
 
 	// Construct the input for the UpdateItem operation

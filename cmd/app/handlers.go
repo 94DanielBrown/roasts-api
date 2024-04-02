@@ -194,3 +194,63 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 	app.Logger.Info("reviews returned", "roastID", roastID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, roastReviews)
 }
+
+// getUserHandler retrieves the user's information from DynamoDB or otherwise creates a new user
+func (app *Config) getUserHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	userID := c.Param("userID")
+
+	app.Logger.Info("User request received", "userID", userID, "correlationID", correlationId)
+
+	user, err := app.UserModels.GetUser(userID)
+	if err != nil {
+		errMsg := "error retrieving user"
+		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	if user == nil {
+		// User not found, so let's create one
+		app.Logger.Info("User not found, creating user", "userID", userID, "correlationID", correlationId)
+		newUser := database.User{
+			UserID: "USER#" + userID,
+			SK:     "PROFILE#" + userID,
+		}
+		if err := app.UserModels.CreateUser(newUser); err != nil {
+			errMsg := "error creating user"
+			app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+		}
+		return c.JSON(http.StatusOK, newUser)
+	}
+
+	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
+	return c.JSON(http.StatusOK, user)
+}
+
+// createUserHandler adds a new user to DynamoDB
+func (app *Config) createUserHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	var newUser database.User
+
+	if err := c.Bind(&newUser); err != nil {
+		errMsg := "error in binding request"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	}
+
+	userID := newUser.UserID // Assuming UserID is set in the request. Alternatively, generate a new ID here.
+	newUser.UserID = userID
+	newUser.SK = "PROFILE#" + userID // Set SK to match your table design.
+
+	app.Logger.Info("User creation request received", "payload", newUser, "correlationID", correlationId)
+
+	if err := app.UserModels.CreateUser(newUser); err != nil {
+		errMsg := "error creating user"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	app.Logger.Info("User created", "userID", newUser.UserID, "correlationID", correlationId)
+	return c.JSON(http.StatusOK, newUser)
+}

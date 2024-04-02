@@ -21,6 +21,7 @@ const webPort = 8000
 type Config struct {
 	RoastModels  database.RoastModels
 	ReviewModels database.ReviewModels
+	UserModels   database.UserModels
 	Logger       *slog.Logger
 }
 
@@ -47,8 +48,9 @@ func main() {
 	}
 
 	app := Config{
-		RoastModels:  database.NewRoastModels(client, logger),
+		RoastModels:  database.NewRoastModels(client),
 		ReviewModels: database.NewReviewModels(client),
+		UserModels:   database.NewUserModels(client),
 		Logger:       logger,
 	}
 
@@ -72,6 +74,8 @@ func (app *Config) routes() *echo.Echo {
 	e.GET("/test", func(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
+	e.GET("/user/:userID", app.getUserHandler)
+	e.POST("/user/:userID", app.createUserHandler)
 
 	return e
 }
