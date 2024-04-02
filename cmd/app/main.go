@@ -75,7 +75,6 @@ func (app *Config) routes() *echo.Echo {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
 	e.GET("/user/:userID", app.getUserHandler)
-	e.POST("/user/:userID", app.createUserHandler)
 
 	return e
 }
