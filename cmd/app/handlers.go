@@ -11,7 +11,6 @@ import (
 	"github.com/94DanielBrown/roasts/internal/ratings"
 	"github.com/94DanielBrown/roasts/internal/reviews"
 	"github.com/94DanielBrown/roasts/internal/utils"
-
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )
@@ -229,31 +228,4 @@ func (app *Config) getUserHandler(c echo.Context) error {
 
 	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, user)
-}
-
-// createUserHandler adds a new user to DynamoDB
-func (app *Config) createUserHandler(c echo.Context) error {
-	correlationId := c.Get("correlationID")
-	var newUser database.User
-
-	if err := c.Bind(&newUser); err != nil {
-		errMsg := "error in binding request"
-		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-	}
-
-	userID := newUser.UserID // Assuming UserID is set in the request. Alternatively, generate a new ID here.
-	newUser.UserID = userID
-	newUser.SK = "PROFILE#" + userID // Set SK to match your table design.
-
-	app.Logger.Info("User creation request received", "payload", newUser, "correlationID", correlationId)
-
-	if err := app.UserModels.CreateUser(newUser); err != nil {
-		errMsg := "error creating user"
-		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
-	}
-
-	app.Logger.Info("User created", "userID", newUser.UserID, "correlationID", correlationId)
-	return c.JSON(http.StatusOK, newUser)
 }

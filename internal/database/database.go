@@ -279,3 +279,23 @@ func (rm *UserModels) GetUserByPrefix(userPrefix string) (*User, error) {
 
 	return &user, err
 }
+
+// CreateUser creates a new user in DynamoDB
+func (rm *UserModels) CreateUser(user User) error {
+	av, err := attributevalue.MarshalMap(user)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(rm.tableName),
+		Item:      av,
+	}
+
+	_, err = rm.client.PutItem(context.Background(), input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
