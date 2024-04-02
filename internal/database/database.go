@@ -73,12 +73,8 @@ type Review struct {
 }
 
 type User struct {
-	UserID          string   `dynamodbav:"PK" json:"userID"`
+	UserKey         string   `dynamodbav:"PK" json:"userKey"`
 	SK              string   `dynamodbav:"SK" json:"-"`
-	FirstName       string   `dynamodbav:"FirstName" json:"firstName,omitempty"`
-	LastName        string   `dynamodbav:"LastName" json:"lastName,omitempty"`
-	Email           string   `dynamodbav:"Email" json:"email,omitEmpty"`
-	DisplayName     string   `dynamodbav:"DisplayName" json:"displayName,omitempty"`
 	ProfilePhotoUrl string   `dynamodbav:"ProfilePhotoUrl" json:"profilePhotoUrl,omitempty"`
 	SavedRoasts     []string `dynamodbav:"SavedRoasts" json:"savedRoasts,omitempty"`
 }
@@ -252,4 +248,34 @@ func (rm *ReviewModels) GetReviewsByRoast(roastKey string) ([]Review, error) {
 	var reviews []Review
 	err = attributevalue.UnmarshalListOfMaps(result.Items, &reviews)
 	return reviews, err
+}
+
+// GetUserByPrefix retrieves a user through userID
+func (rm *UserModels) GetUserByPrefix(userPrefix string) (*User, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(rm.tableName),
+		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval": &types.AttributeValueMemberS{Value: userPrefix},
+			":skval": &types.AttributeValueMemberS{Value: "PROFILE"},
+		},
+	}
+
+	// TODO - Should probably pass ctx through rather than use background
+	result, err := rm.client.Query(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Items) == 0 {
+		return nil, nil
+	}
+
+	var user User
+	err = attributevalue.UnmarshalMap(result.Items[0], &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, err
 }

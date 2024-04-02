@@ -202,7 +202,9 @@ func (app *Config) getUserHandler(c echo.Context) error {
 
 	app.Logger.Info("User request received", "userID", userID, "correlationID", correlationId)
 
-	user, err := app.UserModels.GetUser(userID)
+	userPrefix := "USER#" + userID
+
+	user, err := app.UserModels.GetUserByPrefix(userPrefix)
 	if err != nil {
 		errMsg := "error retrieving user"
 		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
@@ -213,8 +215,9 @@ func (app *Config) getUserHandler(c echo.Context) error {
 		// User not found, so let's create one
 		app.Logger.Info("User not found, creating user", "userID", userID, "correlationID", correlationId)
 		newUser := database.User{
-			UserID: "USER#" + userID,
-			SK:     "PROFILE#" + userID,
+			UserKey: userPrefix,
+			// Can use SK for something else in future if needed
+			SK: "PROFILE#" + userID,
 		}
 		if err := app.UserModels.CreateUser(newUser); err != nil {
 			errMsg := "error creating user"
