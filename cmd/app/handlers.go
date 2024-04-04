@@ -229,3 +229,28 @@ func (app *Config) getUserHandler(c echo.Context) error {
 	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, user)
 }
+
+// saveRoastHandler binds data from request body to save roast to database
+func (app *Config) saveRoastHandler(c echo.Context) error {
+	fmt.Println("handler reached")
+	correlationId := c.Get("correlationID")
+
+	var requestData struct {
+		RoastID string `json:"roastID"`
+		UserID  string `json:"userID"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	}
+	fmt.Println("requestData", requestData)
+	fmt.Println("userID", requestData.UserID)
+
+	err := app.UserModels.UpdateSavedRoasts(requestData.UserID, requestData.RoastID)
+	if err != nil {
+		app.Logger.Error("error saving roast", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error saving roast"})
+	}
+
+	return c.JSON(http.StatusOK, "roast saved successfully")
+}

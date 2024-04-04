@@ -281,20 +281,63 @@ func (rm *UserModels) GetUserByPrefix(userPrefix string) (*User, error) {
 }
 
 // CreateUser creates a new user in DynamoDB
-func (rm *UserModels) CreateUser(user User) error {
+func (um *UserModels) CreateUser(user User) error {
 	av, err := attributevalue.MarshalMap(user)
 	if err != nil {
 		return err
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(rm.tableName),
+		TableName: aws.String(um.tableName),
 		Item:      av,
 	}
 
-	_, err = rm.client.PutItem(context.Background(), input)
+	_, err = um.client.PutItem(context.Background(), input)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// UpdateUser updates a user item in the database
+func (um *UserModels) UpdateUser(user User) error {
+	av, err := attributevalue.MarshalMap(user)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(um.tableName),
+		Item:      av,
+	}
+
+	_, err = um.client.PutItem(context.Background(), input)
+	return err
+}
+
+// UpdateSavedRoasts updates the SavedRoasts array for a user identified by userID
+func (um *UserModels) UpdateSavedRoasts(userID, roastID string) error {
+	// Retrieve the user by userID
+	fmt.Println("userID: ", userID)
+	userKey := "USER#" + userID
+	user, err := um.GetUserByPrefix(userKey)
+	if err != nil {
+		return fmt.Errorf("error retrieving user: %w", err)
+	}
+	if user == nil {
+		return fmt.Errorf("user not found with userID: %s", userID)
+	}
+
+	// Append the roastID to the SavedRoasts array
+	user.SavedRoasts = append(user.SavedRoasts, roastID)
+
+	// test logging
+	fmt.Println("user.SavedRoasts: ", user.SavedRoasts)
+
+	// Update the user item in the database
+	if err := um.UpdateUser(*user); err != nil {
+		return fmt.Errorf("error updating user's SavedRoasts: %w", err)
 	}
 
 	return nil
