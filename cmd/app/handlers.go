@@ -198,18 +198,14 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 func (app *Config) getUserHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	userID := c.Param("userID")
-
 	app.Logger.Info("User request received", "userID", userID, "correlationID", correlationId)
-
 	userPrefix := "USER#" + userID
-
 	user, err := app.UserModels.GetUserByPrefix(userPrefix)
 	if err != nil {
 		errMsg := "error retrieving user"
 		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-
 	if user == nil {
 		// User not found, so let's create one
 		app.Logger.Info("User not found, creating user", "userID", userID, "correlationID", correlationId)
@@ -225,16 +221,13 @@ func (app *Config) getUserHandler(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, newUser)
 	}
-
 	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, user)
 }
 
 // saveRoastHandler binds data from request body to save roast to database
 func (app *Config) saveRoastHandler(c echo.Context) error {
-	fmt.Println("handler reached")
 	correlationId := c.Get("correlationID")
-
 	var requestData struct {
 		RoastID string `json:"roastID"`
 		UserID  string `json:"userID"`
@@ -243,14 +236,30 @@ func (app *Config) saveRoastHandler(c echo.Context) error {
 		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
-	fmt.Println("requestData", requestData)
-	fmt.Println("userID", requestData.UserID)
-
 	err := app.UserModels.UpdateSavedRoasts(requestData.UserID, requestData.RoastID)
 	if err != nil {
 		app.Logger.Error("error saving roast", "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error saving roast"})
 	}
-
 	return c.JSON(http.StatusOK, "roast saved successfully")
+}
+
+// removeRoastHandler binds data from request body to save roast to database
+func (app *Config) removeRoastHandler(c echo.Context) error {
+	fmt.Println("remove roast handler called")
+	correlationId := c.Get("correlationID")
+	var requestData struct {
+		RoastID string `json:"roastID"`
+		UserID  string `json:"userID"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	}
+	err := app.UserModels.RemoveSavedRoast(requestData.UserID, requestData.RoastID)
+	if err != nil {
+		app.Logger.Error("error removing roast", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error removing roast"})
+	}
+	return c.JSON(http.StatusOK, "roast removed successfully")
 }

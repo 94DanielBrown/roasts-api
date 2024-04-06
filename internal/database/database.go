@@ -328,17 +328,48 @@ func (um *UserModels) UpdateSavedRoasts(userID, roastID string) error {
 	if user == nil {
 		return fmt.Errorf("user not found with userID: %s", userID)
 	}
-
 	// Append the roastID to the SavedRoasts array
 	user.SavedRoasts = append(user.SavedRoasts, roastID)
-
 	// test logging
 	fmt.Println("user.SavedRoasts: ", user.SavedRoasts)
-
 	// Update the user item in the database
 	if err := um.UpdateUser(*user); err != nil {
-		return fmt.Errorf("error updating user's SavedRoasts: %w", err)
+		return fmt.Errorf("error updating users SavedRoasts: %w", err)
+	}
+	return nil
+}
+
+// RemoveSavedRoast removed roastID from the SavedRoasts array for a user identified by userID
+func (um *UserModels) RemoveSavedRoast(userID, roastID string) error {
+	// Retrieve the user by userID
+	fmt.Println("userID: ", userID)
+	userKey := "USER#" + userID
+	user, err := um.GetUserByPrefix(userKey)
+	if err != nil {
+		return fmt.Errorf("error retrieving user: %w", err)
+	}
+	if user == nil {
+		return fmt.Errorf("user not found with userID: %s", userID)
+	}
+	fmt.Println("saved roasts before", user.SavedRoasts)
+	// Get the index of the roastID in the SavedRoasts array
+	index := -1
+	for i, id := range user.SavedRoasts {
+		if id == roastID {
+			index = i
+			fmt.Println("index", index)
+			break
+		}
+	}
+	if index == -1 {
+		return fmt.Errorf("roastID not found in users SavedRoasts")
 	}
 
+	// Remove the roastID from the SavedRoasts array
+	user.SavedRoasts = append(user.SavedRoasts[:index], user.SavedRoasts[index+1:]...)
+	// Update the user item in the database
+	if err := um.UpdateUser(*user); err != nil {
+		return fmt.Errorf("error updating users SavedRoasts: %w", err)
+	}
 	return nil
 }
