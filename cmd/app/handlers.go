@@ -241,7 +241,7 @@ func (app *Config) saveRoastHandler(c echo.Context) error {
 		app.Logger.Error("error saving roast", "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error saving roast"})
 	}
-	return c.JSON(http.StatusOK, "roast saved successfully")
+	return c.JSON(http.StatusOK, requestData.RoastID)
 }
 
 // removeRoastHandler binds data from request body to save roast to database
@@ -261,5 +261,5 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 		app.Logger.Error("error removing roast", "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error removing roast"})
 	}
-	return c.JSON(http.StatusOK, "roast removed successfully")
+	return c.JSON(http.StatusOK, requestData.RoastID)
 }
