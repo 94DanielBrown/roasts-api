@@ -34,7 +34,8 @@ type Roast struct {
 	RoastID     string `dynamodbav:"RoastID" json:"id"`
 	Name        string `dynamodbav:"Name" json:"name"`
 	ImageUri    string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	PriceRange  string `dynamodbav:"PriceRange" json:"priceRange"`
+	PriceRange  int    `dynamodbav:"PriceRange" json:"priceRange"`
+	Location    string `dynamodbav:"Location" json:"location"`
 	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
 	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
 	OverallRating           float64 `dynamodbav:"OverallRating" json:"overallRating,omitempty"`
