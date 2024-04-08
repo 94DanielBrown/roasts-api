@@ -365,7 +365,6 @@ func (um *UserModels) RemoveSavedRoast(userID, roastID string) error {
 	if index == -1 {
 		return fmt.Errorf("roastID not found in users SavedRoasts")
 	}
-
 	// Remove the roastID from the SavedRoasts array
 	user.SavedRoasts = append(user.SavedRoasts[:index], user.SavedRoasts[index+1:]...)
 	// Update the user item in the database
@@ -373,4 +372,35 @@ func (um *UserModels) RemoveSavedRoast(userID, roastID string) error {
 		return fmt.Errorf("error updating users SavedRoasts: %w", err)
 	}
 	return nil
+}
+
+// GetUserByPrefix retrieves a user through userID
+func (rm *UserModels) GetUserReviews(userPrefix string) ([]Review, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(rm.tableName),
+		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval":  &types.AttributeValueMemberS{Value: "ROAST#"},
+			":skval":  &types.AttributeValueMemberS{Value: "PROFILE#"},
+			":userID": &types.AttributeValueMemberS{Value: userPrefix},
+		},
+	}
+
+	// TODO - Should probably pass ctx through rather than use background
+	result, err := rm.client.Query(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Items) == 0 {
+		return nil, nil
+	}
+
+	var reviews []Review
+	err = attributevalue.UnmarshalMap(result.Items[0], &reviews)
+	if err != nil {
+		return nil, err
+	}
+
+	return reviews, err
 }

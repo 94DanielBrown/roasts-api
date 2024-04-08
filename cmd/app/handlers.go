@@ -263,3 +263,24 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, requestData.RoastID)
 }
+
+// getUserReviewHandler retrieves the user's reviews DynamoDB
+func (app *Config) getUserReviewHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	userID := c.Param("userID")
+	app.Logger.Info("user review reuqest received", "userID", userID, "correlationID", correlationId)
+	userPrefix := "USER#" + userID
+	userReviews, err := app.UserModels.GetUserReviews(userPrefix)
+	if err != nil {
+		errMsg := "error retrieving user"
+		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+	if userReviews == nil {
+		errMsg := "no reviews found for user"
+		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+	app.Logger.Info("user reviews retrieved", "user", userID, "correlationID", correlationId)
+	return c.JSON(http.StatusOK, userReviews)
+}

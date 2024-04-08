@@ -77,5 +77,6 @@ func (app *Config) routes() *echo.Echo {
 	e.GET("/user/:userID", app.getUserHandler)
 	e.POST("/saveRoast", app.saveRoastHandler)
 	e.POST("/removeRoast", app.removeRoastHandler)
+	e.GET("/userReviews/:userID", app.getUserReviewHandler)
 	return e
 }
