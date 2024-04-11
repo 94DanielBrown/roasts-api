@@ -10,7 +10,6 @@ import (
 	"github.com/94DanielBrown/awsapp"
 	"github.com/94DanielBrown/roasts/config"
 	"github.com/94DanielBrown/roasts/internal/database"
-	"github.com/94DanielBrown/roasts/internal/reviews"
 	"github.com/94DanielBrown/roasts/internal/roasts"
 	"github.com/94DanielBrown/roasts/internal/utils"
 	"github.com/labstack/echo/v4"
@@ -69,12 +68,14 @@ func (app *Config) routes() *echo.Echo {
 	e.GET("/roasts", app.getAllRoastsHandler)
 	e.GET("/roast/:roastID", app.getRoastHandler)
 	//Add validator
-	e.POST("/review", app.createReviewHandler, reviews.CreateReviewValidator)
+	// use request body lots of things
+	e.POST("/review", app.createReviewHandler)
 	e.GET("/reviews/:roastID", app.getReviewsHandler)
 	e.GET("/test", func(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
 	e.GET("/user/:userID", app.getUserHandler)
+	// use request body lots of things
 	e.POST("/saveRoast", app.saveRoastHandler)
 	e.POST("/removeRoast", app.removeRoastHandler)
 	e.GET("/userReviews/:userID", app.getUserReviewHandler)

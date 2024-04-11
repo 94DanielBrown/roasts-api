@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/94DanielBrown/roasts/internal/database"
-	"github.com/94DanielBrown/roasts/internal/ratings"
 	"github.com/94DanielBrown/roasts/internal/reviews"
 	"github.com/94DanielBrown/roasts/internal/utils"
 	"github.com/golang-jwt/jwt/v4"
@@ -100,46 +98,45 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 
 // createReviewHandler adds the review to DynamoDB
 func (app *Config) createReviewHandler(c echo.Context) error {
+	fmt.Println("request body: ", c.Request().Body)
+	fmt.Println("create review handler called")
 	correlationId := c.Get("correlationID")
 	var newReview database.Review
 
-	// TODO - auth supabase jwt token
+	// TODO - auth supabase jwt token and authorize request
 	// Check header and get jwt token if present
-	authHeader := c.Request().Header.Get("Authorization")
-	fmt.Println("Authorization", authHeader)
-	var tokenString string
-	if len(authHeader) > 7 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
-		tokenString = authHeader[7:]
-	}
-	if tokenString == "" {
-		errMsg := "jwt token is missing in the authorization header"
-		app.Logger.Error(errMsg)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-	}
-
-	// Parse the JWT token and extract the claims
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// Ensure the token's algorithm matches your expected signing method
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, http.ErrNotSupported
-		}
-		return []byte("qwertyuiopasdfghjklzxcvbnm123456"), nil // Replace with non temp key
-	})
-
-	if err != nil {
-		errMsg := "error parsing JWT token"
-		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-	}
-
-	// Map claims from token so can be used in review
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		newReview.UserID = claims.UserID
-		newReview.FirstName = claims.FirstName
-		newReview.LastName = claims.LastName
-	} else {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "invalid jwt token"})
-	}
+	//authHeader := c.Request().Header.Get("Authorization")
+	//fmt.Println("Authorization", authHeader)
+	//var tokenString string
+	//if len(authHeader) > 7 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
+	//	tokenString = authHeader[7:]
+	//}
+	//if tokenString == "" {
+	//	errMsg := "jwt token is missing in the authorization header"
+	//	app.Logger.Error(errMsg)
+	//	return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	//}
+	//// Parse the JWT token and extract the claims
+	//token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	//	// Ensure the token's algorithm matches your expected signing method
+	//	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	//		return nil, http.ErrNotSupported
+	//	}
+	//	return []byte("qwertyuiopasdfghjklzxcvbnm123456"), nil // Replace with non temp key
+	//})
+	//if err != nil {
+	//	errMsg := "error parsing JWT token"
+	//	app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+	//	return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+	//}
+	//// Map claims from token so can be used in review
+	//if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+	//	newReview.UserID = claims.UserID
+	//	newReview.FirstName = claims.FirstName
+	//	newReview.LastName = claims.LastName
+	//} else {
+	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "invalid jwt token"})
+	//}
 
 	if err := c.Bind(&newReview); err != nil {
 		errMsg := "error in binding request"
@@ -147,9 +144,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	RoastID := utils.ToPascalCase(newReview.RoastName)
-	newReview.RoastID = RoastID
-	newReview.RoastKey = "ROAST#" + RoastID
+	newReview.RoastKey = "ROAST#" + newReview.RoastID
 	newReview.SK = "REVIEW#" + reviews.GenerateID()
 
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
@@ -159,14 +154,6 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-
-	// TODO - Send to queue for retry or in the meantime just have a scheduled job to rectify inconsistencies
-	go func() {
-		err := ratings.UpdateAverages(app.RoastModels, newReview)
-		if err != nil {
-			app.Logger.Error("error updating average rating", "error", err, "correlationID", correlationId)
-		}
-	}()
 
 	app.Logger.Info("review created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newReview)

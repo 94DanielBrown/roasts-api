@@ -59,7 +59,7 @@ type Review struct {
 	RoastKey string `dynamodbav:"PK" json:"-"`
 	// Using unique RoastID as SK generated from epoch time
 	SK             string `dynamodbav:"SK" json:"-"`
-	RoastID        string `dynamodbav:"RoastID" json:"id"`
+	RoastID        string `dynamodbav:"RoastID" json:"roastID"`
 	OverallRating  int    `dynamodbav:"OverallRating" json:"overallRating"`
 	MeatRating     int    `dynamodbav:"MeatRating" json:"meatRating"`
 	PotatoesRating int    `dynamodbav:"PotatoesRating" json:"potatoesRating"`
