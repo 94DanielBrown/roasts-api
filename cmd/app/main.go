@@ -74,6 +74,7 @@ func (app *Config) routes() *echo.Echo {
 	e.GET("/test", func(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
 	})
+	// creates user if not already in dynamo
 	e.GET("/user/:userID", app.getUserHandler)
 	// use request body lots of things
 	e.POST("/saveRoast", app.saveRoastHandler)

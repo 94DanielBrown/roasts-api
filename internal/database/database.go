@@ -55,7 +55,6 @@ type Roast struct {
 }
 
 type Review struct {
-	// TODO - will need a unique RoastID returned per review for FlatList key
 	RoastKey string `dynamodbav:"PK" json:"-"`
 	// Using unique RoastID as SK generated from epoch time
 	SK             string `dynamodbav:"SK" json:"-"`
@@ -67,10 +66,13 @@ type Review struct {
 	GravyRating    int    `dynamodbav:"GravyRating" json:"gravyRating"`
 	Comment        string `dynamodbav:"Comment,omitempty" json:"comment,omitempty"`
 	RoastName      string `dynamodbav:"RoastName" json:"roastName"`
-	ImageUrl       string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	UserID         string `dynamodbav:"userID" json:"userID"`
-	FirstName      string `dynamodbav:"FirstName" json:"firstName"`
-	LastName       string `dynamodbav:"LastName" json:"lastName"`
+	// When you update your image it needs to update it on all of the users reviews?
+	// Like wise if they want to change their displayname ......
+	ImageUrl    string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	UserID      string `dynamodbav:"userID" json:"userID"`
+	DisplayName string `dynamodbav:"Name" json:"displayName,omitEmpty"`
+	FirstName   string `dynamodbav:"FirstName" json:"firstName,omitEmpty"`
+	LastName    string `dynamodbav:"LastName" json:"lastName,omitEmpty"`
 }
 
 type User struct {
@@ -78,6 +80,9 @@ type User struct {
 	SK              string   `dynamodbav:"SK" json:"-"`
 	ProfilePhotoUrl string   `dynamodbav:"ProfilePhotoUrl" json:"profilePhotoUrl,omitempty"`
 	SavedRoasts     []string `dynamodbav:"SavedRoasts" json:"savedRoasts,omitempty"`
+	FirstName       string   `dynamodbav:"FirstName" json:"firstName,omitempty"`
+	LastName        string   `dynamodbav:"LastName" json:"lastName,omitempty"`
+	DisplayName     string   `dynamodbav:"DisplayName" json:"displayName,omitempty"`
 }
 
 func NewRoastModels(dynamo *dynamodb.Client) RoastModels {

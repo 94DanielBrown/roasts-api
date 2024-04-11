@@ -209,6 +209,7 @@ func (app *Config) getUserHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, newUser)
 	}
 	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
+	fmt.Print("user: ", user)
 	return c.JSON(http.StatusOK, user)
 }
 
