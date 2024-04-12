@@ -252,13 +252,12 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, requestData.RoastID)
 }
 
-// getUserReviewHandler retrieves the user's reviews DynamoDB
+// getUserReviewHandler retrieves the user's reviews from DynamoDB
 func (app *Config) getUserReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	userID := c.Param("userID")
-	app.Logger.Info("user review reuqest received", "userID", userID, "correlationID", correlationId)
-	userPrefix := "USER#" + userID
-	userReviews, err := app.UserModels.GetUserReviews(userPrefix)
+	app.Logger.Info("user review request received", "userID", userID, "correlationID", correlationId)
+	userReviews, err := app.UserModels.GetUserReviews(userID)
 	if err != nil {
 		errMsg := "error retrieving user"
 		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
@@ -269,6 +268,6 @@ func (app *Config) getUserReviewHandler(c echo.Context) error {
 		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-	app.Logger.Info("user reviews retrieved", "user", userID, "correlationID", correlationId)
+	app.Logger.Info("user reviews returned", "user", userID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, userReviews)
 }

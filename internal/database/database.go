@@ -379,16 +379,18 @@ func (um *UserModels) RemoveSavedRoast(userID, roastID string) error {
 	return nil
 }
 
-// GetUserByPrefix retrieves a user through userID
-func (rm *UserModels) GetUserReviews(userPrefix string) ([]Review, error) {
+// GetUserReviews retrieves all reviews a user has made from dynamoDB
+func (rm *UserModels) GetUserReviews(userID string) ([]Review, error) {
+	fmt.Println(userID)
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(rm.tableName),
 		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pkval":  &types.AttributeValueMemberS{Value: "ROAST#"},
-			":skval":  &types.AttributeValueMemberS{Value: "PROFILE#"},
-			":userID": &types.AttributeValueMemberS{Value: userPrefix},
+			":skval":  &types.AttributeValueMemberS{Value: "REVIEW#"},
+			":userID": &types.AttributeValueMemberS{Value: userID},
 		},
+		FilterExpression: aws.String("userID = :userID"),
 	}
 
 	// TODO - Should probably pass ctx through rather than use background
@@ -402,9 +404,13 @@ func (rm *UserModels) GetUserReviews(userPrefix string) ([]Review, error) {
 	}
 
 	var reviews []Review
-	err = attributevalue.UnmarshalMap(result.Items[0], &reviews)
-	if err != nil {
-		return nil, err
+	for _, item := range result.Items {
+		var review Review
+		err = attributevalue.UnmarshalMap(item, &review)
+		if err != nil {
+			return nil, err
+		}
+		reviews = append(reviews, review)
 	}
 
 	return reviews, err
