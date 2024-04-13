@@ -415,3 +415,22 @@ func (rm *UserModels) GetUserReviews(userID string) ([]Review, error) {
 
 	return reviews, err
 }
+
+// UpdateSettings retrieves all reviews a user has made from dynamoDB
+func (um *UserModels) UpdateSettings(userID, displayName, firstName, lastName string) error {
+	userKey := "USER#" + userID
+	user, err := um.GetUserByPrefix(userKey)
+	if err != nil {
+		return fmt.Errorf("error retrieving user: %w", err)
+	}
+	if user == nil {
+		return fmt.Errorf("user not found with userID: %s", userID)
+	}
+	user.DisplayName = displayName
+	user.FirstName = firstName
+	user.LastName = lastName
+	if err := um.UpdateUser(*user); err != nil {
+		return fmt.Errorf("error updating users settings: %w", err)
+	}
+	return nil
+}

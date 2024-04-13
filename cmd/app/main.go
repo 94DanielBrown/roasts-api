@@ -24,6 +24,33 @@ type Config struct {
 	Logger       *slog.Logger
 }
 
+func (app *Config) routes() *echo.Echo {
+	e := echo.New()
+
+	// Use custom middleware func to add correlationID to context to use in logging
+	e.Use(utils.CorrelationID)
+
+	e.GET("/", app.home)
+	e.POST("/roast", app.createRoastHandler, roasts.CreateRoastValidator)
+	e.GET("/roasts", app.getAllRoastsHandler)
+	e.GET("/roast/:roastID", app.getRoastHandler)
+	//Add validator
+	// use request body lots of things
+	e.POST("/review", app.createReviewHandler)
+	e.GET("/reviews/:roastID", app.getReviewsHandler)
+	e.GET("/test", func(c echo.Context) error {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
+	})
+	// creates user if not already in dynamo
+	e.GET("/user/:userID", app.getUserHandler)
+	// use request body lots of things
+	e.POST("/saveRoast", app.saveRoastHandler)
+	e.POST("/removeRoast", app.removeRoastHandler)
+	e.GET("/userReviews/:userID", app.getUserReviewHandler)
+	e.POST("/userSettings/:userID", app.updateUserSettingsHandler)
+	return e
+}
+
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -55,30 +82,4 @@ func main() {
 
 	e := app.routes()
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", webPort)))
-}
-
-func (app *Config) routes() *echo.Echo {
-	e := echo.New()
-
-	// Use custom middleware func to add correlationID to context to use in logging
-	e.Use(utils.CorrelationID)
-
-	e.GET("/", app.home)
-	e.POST("/roast", app.createRoastHandler, roasts.CreateRoastValidator)
-	e.GET("/roasts", app.getAllRoastsHandler)
-	e.GET("/roast/:roastID", app.getRoastHandler)
-	//Add validator
-	// use request body lots of things
-	e.POST("/review", app.createReviewHandler)
-	e.GET("/reviews/:roastID", app.getReviewsHandler)
-	e.GET("/test", func(c echo.Context) error {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
-	})
-	// creates user if not already in dynamo
-	e.GET("/user/:userID", app.getUserHandler)
-	// use request body lots of things
-	e.POST("/saveRoast", app.saveRoastHandler)
-	e.POST("/removeRoast", app.removeRoastHandler)
-	e.GET("/userReviews/:userID", app.getUserReviewHandler)
-	return e
 }

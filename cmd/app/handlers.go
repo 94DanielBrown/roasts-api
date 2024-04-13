@@ -271,3 +271,28 @@ func (app *Config) getUserReviewHandler(c echo.Context) error {
 	app.Logger.Info("user reviews returned", "user", userID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, userReviews)
 }
+
+// TODO - validate if names are valid and not empty
+// updateUserSettingsHandler retrieves the user's reviews from DynamoDB
+func (app *Config) updateUserSettingsHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	userID := c.Param("userID")
+	app.Logger.Info("user settings update request received", "userID", userID, "correlationID", correlationId)
+	var requestData struct {
+		DisplayName string `json:"displayName"`
+		FirstName   string `json:"firstName"`
+		LastName    string `json:"lastName"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	}
+	err := app.UserModels.UpdateSettings(userID, requestData.DisplayName, requestData.FirstName, requestData.LastName)
+	if err != nil {
+		errMsg := "error updating user settings"
+		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+	app.Logger.Info("user settings updated", "user", userID, "correlationID", correlationId)
+	return c.JSON(http.StatusOK, "okay")
+}
