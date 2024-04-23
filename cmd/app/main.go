@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/94DanielBrown/awsapp"
+	s3 "github.com/94DanielBrown/awsapp/pkg/s3"
 	"github.com/94DanielBrown/roasts/config"
 	"github.com/94DanielBrown/roasts/internal/database"
 	"github.com/94DanielBrown/roasts/internal/roasts"
@@ -22,6 +23,7 @@ type Config struct {
 	ReviewModels database.ReviewModels
 	UserModels   database.UserModels
 	Logger       *slog.Logger
+	S3           *s3.Client
 }
 
 func (app *Config) routes() *echo.Echo {
@@ -48,6 +50,7 @@ func (app *Config) routes() *echo.Echo {
 	e.POST("/removeRoast", app.removeRoastHandler)
 	e.GET("/userReviews/:userID", app.getUserReviewHandler)
 	e.POST("/userSettings/:userID", app.updateUserSettingsHandler)
+	e.GET("/newImage", app.uploadImage)
 	return e
 }
 
@@ -67,10 +70,16 @@ func main() {
 
 	client, table, err := awsapp.InitDynamo(ctx, tableName)
 	if err != nil {
-		logger.Error("error setting up app", "error", err)
+		logger.Error("error setting up dynamo for app", "error", err)
 		os.Exit(1)
 	} else {
 		logger.Info(table)
+	}
+
+	s3Client, err := s3.Connect()
+	if err != nil {
+		logger.Error("error setting up s3 for app", "error", err)
+		os.Exit(1)
 	}
 
 	app := Config{
@@ -78,6 +87,7 @@ func main() {
 		ReviewModels: database.NewReviewModels(client),
 		UserModels:   database.NewUserModels(client),
 		Logger:       logger,
+		S3:           s3Client,
 	}
 
 	e := app.routes()

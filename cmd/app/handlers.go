@@ -290,9 +290,31 @@ func (app *Config) updateUserSettingsHandler(c echo.Context) error {
 	err := app.UserModels.UpdateSettings(userID, requestData.DisplayName, requestData.FirstName, requestData.LastName)
 	if err != nil {
 		errMsg := "error updating user settings"
-		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
+		app.Logger.Error(errMsg, "error", err, "userID", userID, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 	app.Logger.Info("user settings updated", "user", userID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, "okay")
+}
+
+func (app *Config) uploadImage(c echo.Context) error {
+	fmt.Println("test")
+	correlationId := c.Get("correlationID")
+	bucketName := "images-testing-dev-roast"
+	objectKey := fmt.Sprintf("upload/%d", time.Now().Unix())
+	expiry := 30 * time.Minute
+
+	presignedURL, err := app.S3.GeneratePresignedURL(bucketName, objectKey, expiry)
+	if err != nil {
+		errMsg := "error creating presigned URL"
+		app.Logger.Error("failed to generate presigned URL", "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	response := map[string]string{
+		"presignedURL": presignedURL,
+		"objectKey":    objectKey,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
