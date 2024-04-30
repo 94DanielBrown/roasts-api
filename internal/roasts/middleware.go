@@ -28,7 +28,7 @@ func CreateRoastValidator(next echo.HandlerFunc) echo.HandlerFunc {
 		//	RoastKey    string `json:"roastId"`
 		//	PriceRange string `json:"priceRange"`
 		//	Name       string `json:"name"`
-		//	ImageUrl   string `json:"imageUrl"`
+		//	ImageURL   string `json:"imageURL"`
 		//}
 		//slog.Info("Request Body: ", "body", req.Body)
 		//

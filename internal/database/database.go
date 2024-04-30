@@ -33,7 +33,7 @@ type Roast struct {
 	SK          string `dynamodbav:"SK" json:"-"`
 	RoastID     string `dynamodbav:"RoastID" json:"id"`
 	Name        string `dynamodbav:"Name" json:"name"`
-	ImageUri    string `dynamodbav:"ImageUrl" json:"imageUrl"`
+	ImageURL    string `dynamodbav:"ImageURL" json:"imageURL"`
 	PriceRange  int    `dynamodbav:"PriceRange" json:"priceRange"`
 	Location    string `dynamodbav:"Location" json:"location"`
 	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
@@ -68,8 +68,8 @@ type Review struct {
 	RoastName      string `dynamodbav:"RoastName" json:"roastName"`
 	// When you update your image it needs to update it on all of the users reviews?
 	// Like wise if they want to change their displayname ......
-	ImageUrl    string `dynamodbav:"ImageUrl" json:"imageUrl"`
-	UserID      string `dynamodbav:"userID" json:"userID"`
+	ImageURL    string `dynamodbav:"ImageURL" json:"imageURL"`
+	UserID      string `dynamodbav:"UserID" json:"userID"`
 	DisplayName string `dynamodbav:"Name" json:"displayName,omitEmpty"`
 	FirstName   string `dynamodbav:"FirstName" json:"firstName,omitEmpty"`
 	LastName    string `dynamodbav:"LastName" json:"lastName,omitEmpty"`
@@ -381,20 +381,28 @@ func (um *UserModels) RemoveSavedRoast(userID, roastID string) error {
 
 // GetUserReviews retrieves all reviews a user has made from dynamoDB
 func (rm *UserModels) GetUserReviews(userID string) ([]Review, error) {
-	fmt.Println(userID)
-	input := &dynamodb.QueryInput{
-		TableName:              aws.String(rm.tableName),
-		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+	// TODO - query doesn't work would need secondary index if scales to avoid scanning
+	//input := &dynamodb.QueryInput{
+	//	TableName:              aws.String(rm.tableName),
+	//	KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+	//	ExpressionAttributeValues: map[string]types.AttributeValue{
+	//		":pkval":  &types.AttributeValueMemberS{Value: "ROAST#"},
+	//		":skval":  &types.AttributeValueMemberS{Value: "REVIEW#"},
+	//		":userID": &types.AttributeValueMemberS{Value: userID},
+	//	},
+	//	FilterExpression: aws.String("userID = :userID"),
+	//}
+
+	input := &dynamodb.ScanInput{
+		TableName:        aws.String(rm.tableName),
+		FilterExpression: aws.String("UserID = :userID"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pkval":  &types.AttributeValueMemberS{Value: "ROAST#"},
-			":skval":  &types.AttributeValueMemberS{Value: "REVIEW#"},
 			":userID": &types.AttributeValueMemberS{Value: userID},
 		},
-		FilterExpression: aws.String("userID = :userID"),
 	}
 
 	// TODO - Should probably pass ctx through rather than use background
-	result, err := rm.client.Query(context.Background(), input)
+	result, err := rm.client.Scan(context.Background(), input)
 	if err != nil {
 		return nil, err
 	}
@@ -412,6 +420,7 @@ func (rm *UserModels) GetUserReviews(userID string) ([]Review, error) {
 		}
 		reviews = append(reviews, review)
 	}
+	fmt.Println("reviews: ", reviews)
 
 	return reviews, err
 }

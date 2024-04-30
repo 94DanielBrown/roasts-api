@@ -29,7 +29,7 @@ func CreateReviewValidator(next echo.HandlerFunc) echo.HandlerFunc {
 			UserID         string `json:"userID"`
 			Comment        string `json:"comment,omitempty"`
 			RoastName      string `json:"roastName"`
-			ImageUrl       string `json:"imageUrl"`
+			ImageURL       string `json:"imageURL"`
 			OverallRating  int    `json:"overallRating"`
 			MeatRating     int    `json:"meatRating"`
 			PotatoesRating int    `json:"potatoesRating"`

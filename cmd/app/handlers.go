@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/94DanielBrown/roasts/internal/database"
-	"github.com/94DanielBrown/roasts/internal/reviews"
-	"github.com/94DanielBrown/roasts/internal/utils"
+	"github.com/94DanielBrown/roasts-api/internal/database"
+	"github.com/94DanielBrown/roasts-api/internal/reviews"
+	"github.com/94DanielBrown/roasts-api/internal/utils"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )

@@ -1,4 +1,4 @@
-module github.com/94DanielBrown/roasts
+module github.com/94DanielBrown/roasts-api
 
 go 1.21.5
 

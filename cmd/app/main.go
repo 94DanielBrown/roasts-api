@@ -9,10 +9,10 @@ import (
 
 	"github.com/94DanielBrown/awsapp"
 	s3 "github.com/94DanielBrown/awsapp/pkg/s3"
-	"github.com/94DanielBrown/roasts/config"
-	"github.com/94DanielBrown/roasts/internal/database"
-	"github.com/94DanielBrown/roasts/internal/roasts"
-	"github.com/94DanielBrown/roasts/internal/utils"
+	"github.com/94DanielBrown/roasts-api/config"
+	"github.com/94DanielBrown/roasts-api/internal/database"
+	"github.com/94DanielBrown/roasts-api/internal/roasts"
+	"github.com/94DanielBrown/roasts-api/internal/utils"
 	"github.com/labstack/echo/v4"
 )
 

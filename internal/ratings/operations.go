@@ -3,7 +3,7 @@ package ratings
 import (
 	"errors"
 
-	"github.com/94DanielBrown/roasts/internal/database"
+	"github.com/94DanielBrown/roasts-api/internal/database"
 )
 
 func UpdateAverages(roastModels database.RoastModels, newReview database.Review) error {
