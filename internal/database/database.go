@@ -73,6 +73,7 @@ type Review struct {
 	DisplayName string `dynamodbav:"Name" json:"displayName,omitEmpty"`
 	FirstName   string `dynamodbav:"FirstName" json:"firstName,omitEmpty"`
 	LastName    string `dynamodbav:"LastName" json:"lastName,omitEmpty"`
+	DateAdded   int    `dynamodbav:"DateAdded" json:"dateAdded"`
 }
 
 type User struct {
