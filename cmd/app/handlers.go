@@ -143,6 +143,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		slog.Error(errMsg, "err", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
+	fmt.Println("date addeed", newReview.DateAdded)
 
 	newReview.RoastKey = "ROAST#" + newReview.RoastID
 	newReview.SK = "REVIEW#" + reviews.GenerateID()
@@ -275,6 +276,7 @@ func (app *Config) getUserReviewHandler(c echo.Context) error {
 // TODO - validate if names are valid and not empty
 // updateUserSettingsHandler retrieves the user's reviews from DynamoDB
 func (app *Config) updateUserSettingsHandler(c echo.Context) error {
+	fmt.Println("test")
 	correlationId := c.Get("correlationID")
 	userID := c.Param("userID")
 	app.Logger.Info("user settings update request received", "userID", userID, "correlationID", correlationId)
