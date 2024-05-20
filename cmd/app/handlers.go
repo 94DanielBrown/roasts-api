@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -267,9 +268,16 @@ func (app *Config) getUserReviewHandler(c echo.Context) error {
 	if userReviews == nil {
 		errMsg := "no reviews found for user"
 		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+		// return empty array for frontend to distinguish between failure and no reviews
+		userReviews = []database.Review{}
 	}
 	app.Logger.Info("user reviews returned", "user", userID, "correlationID", correlationId)
+	userReviewsJSON, err := json.Marshal(userReviews)
+	if err != nil {
+		app.Logger.Error("error marshalling user reviews to JSON", "err", err, "userID", userID, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error marshalling user reviews"})
+	}
+	fmt.Println("Response:", string(userReviewsJSON))
 	return c.JSON(http.StatusOK, userReviews)
 }
 
