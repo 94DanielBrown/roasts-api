@@ -2,7 +2,6 @@ package dynamo
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -94,6 +93,6 @@ func Wait(ctx context.Context, client *dynamodb.Client, tableName string) {
 	}
 	err := waiter.Wait(ctx, &ti, maxWait)
 	if err != nil {
-		log.Panic(fmt.Sprintf("time out waiting for table %s to be created: %v", tableName, err))
+		log.Panicf("time out waiting for table %s to be created: %v", tableName, err)
 	}
 }

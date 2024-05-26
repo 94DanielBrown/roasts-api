@@ -21,15 +21,13 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+type message struct {
+	Message string `json:"message"`
+}
+
 // home returns a simple welcome message to check if the server is running properly
 func (app *Config) home(c echo.Context) error {
 	return c.JSON(http.StatusOK, "home")
-}
-
-// listRoasts returns a dummy list atm
-func (app *Config) listRoasts(c echo.Context) error {
-	// Logic to list roasts
-	return c.JSON(http.StatusOK, []string{"Roast1", "Roast2"}) // Example response
 }
 
 // getRoastHandlers gets an individual roast by roastID
@@ -50,15 +48,24 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, roast)
 }
 
-// createRoastHandler adds the new roast to DynamoDB
+// @Summary create a roast
+// @ID create-roast
+// @Tags roasts
+// @Accept json
+// @Produce json
+// @Param data body database.Roast true "Roast object that needs to be created"
+// @Success 200 {object} database.Roast
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /roast [post]
 func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newRoast database.Roast
 
 	if err := c.Bind(&newRoast); err != nil {
-		errMsg := "error in binding request"
-		slog.Error(errMsg, "err", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+		errMsg := "Error in binding request"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, message{Message: errMsg})
 	}
 
 	RoastID := utils.ToPascalCase(newRoast.Name)
@@ -66,35 +73,97 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	newRoast.RoastKey = "ROAST#" + RoastID
 	newRoast.SK = "PROFILE#" + time.Now().Format("02042006")
 
-	app.Logger.Info("Roast request received: ", "payload", newRoast, "correlationID", correlationId)
+	app.Logger.Info("Roast request received", "payload", newRoast, "correlationID", correlationId)
 
 	if err := app.RoastModels.CreateRoast(newRoast); err != nil {
-		errMsg := "error creating roast"
+		errMsg := "Error creating roast"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
 	}
 
-	app.Logger.Info("roast created", "correlationID", correlationId)
+	app.Logger.Info("Roast created", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, newRoast)
 }
 
-// getRoast just returns a string atm, may not be required
-func (app *Config) getRoast(c echo.Context, roastID string) error {
-	return c.JSON(http.StatusOK, "Roast")
-}
-
-// getAllRoastsHandler gets and returns all roasts from DynamoDB
+// @Summary get all roasts
+// @ID  get-all-roasts
+// @Tags roasts
+// @Produce json
+// @Success 200 {object} []database.Roast
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /roasts [get]
 func (app *Config) getAllRoastsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	allRoasts, err := app.RoastModels.GetAllRoasts()
 	if err != nil {
-		errMsg := "error getting all roasts from dynamodb"
-		slog.Error(errMsg, "err", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, "error getting all roasts from dynamodb")
+		errMsg := "Error getting all roasts from dynamodb"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
 	}
 
 	app.Logger.Info("all roasts returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, allRoasts)
+}
+
+// @Summary save roast
+// @ID save-roast
+// @Tags roasts
+// @Accept json
+// @Produce json
+// @Success 200 {object} message
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /roast/{roastID} [post]
+func (app *Config) saveRoastHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	var requestData struct {
+		RoastID string `json:"roastID"`
+		UserID  string `json:"userID"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		errMsg := "error binding request"
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, message{Message: errMsg})
+	}
+	err := app.UserModels.UpdateSavedRoasts(requestData.UserID, requestData.RoastID)
+	if err != nil {
+		errMsg := "Error saving roast"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
+	}
+	return c.JSON(http.StatusOK, requestData.RoastID)
+}
+
+// @Summary delete roast
+// @ID delete-roast
+// @Tags roasts
+// @Accept json
+// @Produce json
+// @Success 200 {object} message
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /removeRoast/{roastID} [post]
+func (app *Config) removeRoastHandler(c echo.Context) error {
+	fmt.Println("remove roast handler called")
+	correlationId := c.Get("correlationID")
+	var requestData struct {
+		RoastID string `json:"roastID"`
+		UserID  string `json:"userID"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		errMsg := "Error binding request"
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, message{Message: errMsg})
+	}
+
+	err := app.UserModels.RemoveSavedRoast(requestData.UserID, requestData.RoastID)
+	if err != nil {
+		errMsg := "Error removing roast"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
+	}
+	return c.JSON(http.StatusOK, requestData.RoastID)
 }
 
 // createReviewHandler adds the review to DynamoDB
@@ -213,45 +282,6 @@ func (app *Config) getUserHandler(c echo.Context) error {
 	app.Logger.Info("User retrieved", "user", user, "correlationID", correlationId)
 	fmt.Print("user: ", user)
 	return c.JSON(http.StatusOK, user)
-}
-
-// saveRoastHandler binds data from request body to save roast to database
-func (app *Config) saveRoastHandler(c echo.Context) error {
-	correlationId := c.Get("correlationID")
-	var requestData struct {
-		RoastID string `json:"roastID"`
-		UserID  string `json:"userID"`
-	}
-	if err := c.Bind(&requestData); err != nil {
-		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
-	}
-	err := app.UserModels.UpdateSavedRoasts(requestData.UserID, requestData.RoastID)
-	if err != nil {
-		app.Logger.Error("error saving roast", "error", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error saving roast"})
-	}
-	return c.JSON(http.StatusOK, requestData.RoastID)
-}
-
-// removeRoastHandler binds data from request body to save roast to database
-func (app *Config) removeRoastHandler(c echo.Context) error {
-	fmt.Println("remove roast handler called")
-	correlationId := c.Get("correlationID")
-	var requestData struct {
-		RoastID string `json:"roastID"`
-		UserID  string `json:"userID"`
-	}
-	if err := c.Bind(&requestData); err != nil {
-		app.Logger.Error("error binding request", "error", err, "correlationID", correlationId)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
-	}
-	err := app.UserModels.RemoveSavedRoast(requestData.UserID, requestData.RoastID)
-	if err != nil {
-		app.Logger.Error("error removing roast", "error", err, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error removing roast"})
-	}
-	return c.JSON(http.StatusOK, requestData.RoastID)
 }
 
 // getUserReviewHandler retrieves the user's reviews from DynamoDB

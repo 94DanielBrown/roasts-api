@@ -70,9 +70,9 @@ type Review struct {
 	// Like wise if they want to change their displayname ......
 	ImageURL    string `dynamodbav:"ImageURL" json:"imageURL"`
 	UserID      string `dynamodbav:"UserID" json:"userID"`
-	DisplayName string `dynamodbav:"Name" json:"displayName,omitEmpty"`
-	FirstName   string `dynamodbav:"FirstName" json:"firstName,omitEmpty"`
-	LastName    string `dynamodbav:"LastName" json:"lastName,omitEmpty"`
+	DisplayName string `dynamodbav:"Name" json:"displayName,omitempty"`
+	FirstName   string `dynamodbav:"FirstName" json:"firstName,omitempty"`
+	LastName    string `dynamodbav:"LastName" json:"lastName,omitempty"`
 	DateAdded   int    `dynamodbav:"DateAdded" json:"dateAdded"`
 }
 
