@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -30,7 +29,14 @@ func (app *Config) home(c echo.Context) error {
 	return c.JSON(http.StatusOK, "home")
 }
 
-// getRoastHandlers gets an individual roast by roastID
+// @Summary get a roast
+// @ID get-roast
+// @Tags roasts
+// @Produce json
+// @Success 200 {object} database.Roast
+// @Failure 404 {object} message
+// @Failure 500 {object} message
+// @Router /roast/{roastID} [get]
 func (app *Config) getRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	roastID := c.Param("roastID")
@@ -42,6 +48,9 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 		errMsg := "error getting roast"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+	if roast == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "roast not found"})
 	}
 
 	app.Logger.Info("roast returned", "correlationID", correlationId)
@@ -57,7 +66,7 @@ func (app *Config) getRoastHandler(c echo.Context) error {
 // @Success 200 {object} database.Roast
 // @Failure 400 {object} message
 // @Failure 500 {object} message
-// @Router /roast [post]
+// @Router /roast/{roastID} [post]
 func (app *Config) createRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var newRoast database.Roast
@@ -114,7 +123,7 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 // @Success 200 {object} message
 // @Failure 400 {object} message
 // @Failure 500 {object} message
-// @Router /roast/{roastID} [post]
+// @Router /saveRoast [post]
 func (app *Config) saveRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var requestData struct {
@@ -284,8 +293,15 @@ func (app *Config) getUserHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
-// getUserReviewHandler retrieves the user's reviews from DynamoDB
-func (app *Config) getUserReviewHandler(c echo.Context) error {
+// @Summary get a users reviews
+// @ID get-user-reviews
+// @Tags reviews
+// @Produce json
+// @Success 200 {object} []database.Reviews
+// @Failure 404 {object} message
+// @Failure 500 {object} message
+// @Router /userReviews/{userID} [get]
+func (app *Config) getUserReviewsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	userID := c.Param("userID")
 	app.Logger.Info("user review request received", "userID", userID, "correlationID", correlationId)
@@ -296,18 +312,10 @@ func (app *Config) getUserReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 	if userReviews == nil {
-		errMsg := "no reviews found for user"
-		app.Logger.Error(errMsg, "err", err, "userID", userID, "correlationID", correlationId)
-		// return empty array for frontend to distinguish between failure and no reviews
-		userReviews = []database.Review{}
+		app.Logger.Info("no reviews found for user", "correlationID", correlationId)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "reviews not found for user"})
 	}
 	app.Logger.Info("user reviews returned", "user", userID, "correlationID", correlationId)
-	userReviewsJSON, err := json.Marshal(userReviews)
-	if err != nil {
-		app.Logger.Error("error marshalling user reviews to JSON", "err", err, "userID", userID, "correlationID", correlationId)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error marshalling user reviews"})
-	}
-	fmt.Println("Response:", string(userReviewsJSON))
 	return c.JSON(http.StatusOK, userReviews)
 }
 

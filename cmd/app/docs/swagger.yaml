@@ -75,7 +75,27 @@ paths:
       summary: delete roast
       tags:
       - roasts
-  /roast:
+  /roast/{roastID}:
+    get:
+      operationId: get-roast
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.Roast'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: get a roast
+      tags:
+      - roasts
     post:
       consumes:
       - application/json
@@ -105,29 +125,6 @@ paths:
       summary: create a roast
       tags:
       - roasts
-  /roast/{roastID}:
-    post:
-      consumes:
-      - application/json
-      operationId: save-roast
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/main.message'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/main.message'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/main.message'
-      summary: save roast
-      tags:
-      - roasts
   /roasts:
     get:
       operationId: get-all-roasts
@@ -149,6 +146,29 @@ paths:
           schema:
             $ref: '#/definitions/main.message'
       summary: get all roasts
+      tags:
+      - roasts
+  /saveRoast:
+    post:
+      consumes:
+      - application/json
+      operationId: save-roast
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: save roast
       tags:
       - roasts
 swagger: "2.0"

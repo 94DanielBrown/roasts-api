@@ -51,7 +51,7 @@ func (app *Config) routes() *echo.Echo {
 	// use request body lots of things
 	e.POST("/saveRoast", app.saveRoastHandler)
 	e.POST("/removeRoast", app.removeRoastHandler)
-	e.GET("/userReviews/:userID", app.getUserReviewHandler)
+	e.GET("/userReviews/:userID", app.getUserReviewsHandler)
 	e.POST("/userSettings/:userID", app.updateUserSettingsHandler)
 	e.GET("/newImage", app.uploadImage)
 	return e

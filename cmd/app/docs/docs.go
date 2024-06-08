@@ -50,7 +50,37 @@ const docTemplate = `{
                 }
             }
         },
-        "/roast": {
+        "/roast/{roastID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "get a roast",
+                "operationId": "get-roast",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.Roast"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -96,41 +126,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/roast/{roastID}": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "roasts"
-                ],
-                "summary": "save roast",
-                "operationId": "save-roast",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.message"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/main.message"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/main.message"
-                        }
-                    }
-                }
-            }
-        },
         "/roasts": {
             "get": {
                 "produces": [
@@ -149,6 +144,41 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.Roast"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/saveRoast": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "save roast",
+                "operationId": "save-roast",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
                         }
                     },
                     "400": {
