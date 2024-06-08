@@ -1,0 +1,235 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/removeRoast/{roastID}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "delete roast",
+                "operationId": "delete-roast",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/roast": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "create a roast",
+                "operationId": "create-roast",
+                "parameters": [
+                    {
+                        "description": "Roast object that needs to be created",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Roast"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.Roast"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/roast/{roastID}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "save roast",
+                "operationId": "save-roast",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/roasts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roasts"
+                ],
+                "summary": "get all roasts",
+                "operationId": "get-all-roasts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Roast"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "database.Roast": {
+            "type": "object",
+            "properties": {
+                "gravyRating": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageURL": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "meatGravyRating": {
+                    "type": "number"
+                },
+                "meatPotatoesGravyRating": {
+                    "type": "number"
+                },
+                "meatPotatoesRating": {
+                    "type": "number"
+                },
+                "meatPotatoesVegRating": {
+                    "type": "number"
+                },
+                "meatRating": {
+                    "type": "number"
+                },
+                "meatVegGravyRating": {
+                    "type": "number"
+                },
+                "meatVegRating": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "overallRating": {
+                    "description": "Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet",
+                    "type": "number"
+                },
+                "potatoesGravyRating": {
+                    "type": "number"
+                },
+                "potatoesRating": {
+                    "type": "number"
+                },
+                "potatoesVegRating": {
+                    "type": "number"
+                },
+                "priceRange": {
+                    "type": "integer"
+                },
+                "reviewCount": {
+                    "type": "integer"
+                },
+                "vegGravyRating": {
+                    "type": "number"
+                },
+                "vegRating": {
+                    "type": "number"
+                }
+            }
+        },
+        "main.message": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

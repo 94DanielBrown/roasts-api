@@ -1,0 +1,154 @@
+definitions:
+  database.Roast:
+    properties:
+      gravyRating:
+        type: number
+      id:
+        type: string
+      imageURL:
+        type: string
+      location:
+        type: string
+      meatGravyRating:
+        type: number
+      meatPotatoesGravyRating:
+        type: number
+      meatPotatoesRating:
+        type: number
+      meatPotatoesVegRating:
+        type: number
+      meatRating:
+        type: number
+      meatVegGravyRating:
+        type: number
+      meatVegRating:
+        type: number
+      name:
+        type: string
+      overallRating:
+        description: Average rating of 0 is omitted, frontend should take no result
+          as an indication to display that there's no reviews yet
+        type: number
+      potatoesGravyRating:
+        type: number
+      potatoesRating:
+        type: number
+      potatoesVegRating:
+        type: number
+      priceRange:
+        type: integer
+      reviewCount:
+        type: integer
+      vegGravyRating:
+        type: number
+      vegRating:
+        type: number
+    type: object
+  main.message:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /removeRoast/{roastID}:
+    post:
+      consumes:
+      - application/json
+      operationId: delete-roast
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: delete roast
+      tags:
+      - roasts
+  /roast:
+    post:
+      consumes:
+      - application/json
+      operationId: create-roast
+      parameters:
+      - description: Roast object that needs to be created
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Roast'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.Roast'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: create a roast
+      tags:
+      - roasts
+  /roast/{roastID}:
+    post:
+      consumes:
+      - application/json
+      operationId: save-roast
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: save roast
+      tags:
+      - roasts
+  /roasts:
+    get:
+      operationId: get-all-roasts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Roast'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: get all roasts
+      tags:
+      - roasts
+swagger: "2.0"

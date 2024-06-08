@@ -9,11 +9,13 @@ import (
 
 	"github.com/94DanielBrown/awsapp"
 	s3 "github.com/94DanielBrown/awsapp/pkg/s3"
+	_ "github.com/94DanielBrown/roasts-api/cmd/app/docs"
 	"github.com/94DanielBrown/roasts-api/config"
 	"github.com/94DanielBrown/roasts-api/internal/database"
 	"github.com/94DanielBrown/roasts-api/internal/roasts"
 	"github.com/94DanielBrown/roasts-api/internal/utils"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 const webPort = 8000
@@ -32,6 +34,7 @@ func (app *Config) routes() *echo.Echo {
 	// Use custom middleware func to add correlationID to context to use in logging
 	e.Use(utils.CorrelationID)
 
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.GET("/", app.home)
 	e.POST("/roast", app.createRoastHandler, roasts.CreateRoastValidator)
 	e.GET("/roasts", app.getAllRoastsHandler)
