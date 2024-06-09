@@ -1,4 +1,38 @@
 definitions:
+  database.Review:
+    properties:
+      comment:
+        type: string
+      dateAdded:
+        type: integer
+      displayName:
+        type: string
+      firstName:
+        type: string
+      gravyRating:
+        type: integer
+      imageURL:
+        description: |-
+          When you update your image it needs to update it on all of the users reviews?
+          Like wise if they want to change their displayname ......
+        type: string
+      lastName:
+        type: string
+      meatRating:
+        type: integer
+      overallRating:
+        type: integer
+      potatoesRating:
+        type: integer
+      roastID:
+        type: string
+      roastName:
+        type: string
+      userID:
+        type: string
+      vegRating:
+        type: integer
+    type: object
   database.Roast:
     properties:
       gravyRating:
@@ -75,6 +109,52 @@ paths:
       summary: delete roast
       tags:
       - roasts
+  /review:
+    post:
+      consumes:
+      - application/json
+      operationId: create-review
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.Review'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: create review
+      tags:
+      - reviews
+  /reviews/{roastID}:
+    get:
+      operationId: get-roast-reviews
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Review'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: get reviews for a roast
+      tags:
+      - reviews
   /roast/{roastID}:
     get:
       operationId: get-roast
@@ -171,4 +251,27 @@ paths:
       summary: save roast
       tags:
       - roasts
+  /userReviews/{userID}:
+    get:
+      operationId: get-user-reviews
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Review'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.message'
+      summary: get a users reviews
+      tags:
+      - reviews
 swagger: "2.0"

@@ -39,6 +39,76 @@
                 }
             }
         },
+        "/review": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "create review",
+                "operationId": "create-review",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.Review"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{roastID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "get reviews for a roast",
+                "operationId": "get-roast-reviews",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Review"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
+        },
         "/roast/{roastID}": {
             "get": {
                 "produces": [
@@ -184,9 +254,92 @@
                     }
                 }
             }
+        },
+        "/userReviews/{userID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "get a users reviews",
+                "operationId": "get-user-reviews",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Review"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.message"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "database.Review": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "dateAdded": {
+                    "type": "integer"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "gravyRating": {
+                    "type": "integer"
+                },
+                "imageURL": {
+                    "description": "When you update your image it needs to update it on all of the users reviews?\nLike wise if they want to change their displayname ......",
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "meatRating": {
+                    "type": "integer"
+                },
+                "overallRating": {
+                    "type": "integer"
+                },
+                "potatoesRating": {
+                    "type": "integer"
+                },
+                "roastID": {
+                    "type": "string"
+                },
+                "roastName": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "vegRating": {
+                    "type": "integer"
+                }
+            }
+        },
         "database.Roast": {
             "type": "object",
             "properties": {

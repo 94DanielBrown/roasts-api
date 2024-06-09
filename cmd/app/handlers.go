@@ -175,7 +175,15 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, requestData.RoastID)
 }
 
-// createReviewHandler adds the review to DynamoDB
+// @Summary create review
+// @ID create-review
+// @Tags reviews
+// @Accept json
+// @Produce json
+// @Success 200 {object} database.Review
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /review [post]
 func (app *Config) createReviewHandler(c echo.Context) error {
 	fmt.Println("request body: ", c.Request().Body)
 	fmt.Println("create review handler called")
@@ -222,7 +230,6 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		slog.Error(errMsg, "err", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
-	fmt.Println("date addeed", newReview.DateAdded)
 
 	newReview.RoastKey = "ROAST#" + newReview.RoastID
 	newReview.SK = "REVIEW#" + reviews.GenerateID()
@@ -239,7 +246,14 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, newReview)
 }
 
-// getReviewsHandler gets all reviews for a roast by roastID
+// @Summary get reviews for a roast
+// @ID  get-roast-reviews
+// @Tags reviews
+// @Produce json
+// @Success 200 {object} []database.Review
+// @Failure 404 {object} message
+// @Failure 500 {object} message
+// @Router /reviews/{roastID} [get]
 func (app *Config) getReviewsHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	roastID := c.Param("roastID")
@@ -252,6 +266,7 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 
+	// TODO - we should really return a 400 for invalid roast ID?
 	if roastReviews == nil {
 		app.Logger.Info("no roast reviews returned due to no reviews", "correlationID", correlationId)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "reviews not found"})
@@ -297,7 +312,7 @@ func (app *Config) getUserHandler(c echo.Context) error {
 // @ID get-user-reviews
 // @Tags reviews
 // @Produce json
-// @Success 200 {object} []database.Reviews
+// @Success 200 {object} []database.Review
 // @Failure 404 {object} message
 // @Failure 500 {object} message
 // @Router /userReviews/{userID} [get]
