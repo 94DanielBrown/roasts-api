@@ -154,7 +154,6 @@ func (app *Config) saveRoastHandler(c echo.Context) error {
 // @Failure 500 {object} message
 // @Router /removeRoast/{roastID} [post]
 func (app *Config) removeRoastHandler(c echo.Context) error {
-	fmt.Println("remove roast handler called")
 	correlationId := c.Get("correlationID")
 	var requestData struct {
 		RoastID string `json:"roastID"`
@@ -185,8 +184,6 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 // @Failure 500 {object} message
 // @Router /review [post]
 func (app *Config) createReviewHandler(c echo.Context) error {
-	fmt.Println("request body: ", c.Request().Body)
-	fmt.Println("create review handler called")
 	correlationId := c.Get("correlationID")
 	var newReview database.Review
 
@@ -274,6 +271,37 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 
 	app.Logger.Info("reviews returned", "roastID", roastID, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, roastReviews)
+}
+
+// @Summary delete a review
+// @ID delete-review
+// @Tags reviews
+// @Produce json
+// @Success 200 {object} database.Review.ID
+// @Failure 500 {object} message
+// @Router /removeReview [post]
+func (app *Config) removeReviewHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	var requestData struct {
+		RoastID  string `json:"roastID"`
+		ReviewID string `json:"reviewID"`
+	}
+	if err := c.Bind(&requestData); err != nil {
+		errMsg := "error binding request"
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
+
+	}
+	roastID := "ROAST#" + requestData.RoastID
+	reviewID := "REVIEW#" + requestData.ReviewID
+	err := app.ReviewModels.RemoveReview(roastID, reviewID)
+	if err != nil {
+		errMsg := "error removing review"
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+	app.Logger.Info("review removed", "id", reviewID, "correlationID", correlationId)
+	return c.JSON(http.StatusOK, requestData.ReviewID)
 }
 
 // getUserHandler retrieves the user's information from DynamoDB or otherwise creates a new user

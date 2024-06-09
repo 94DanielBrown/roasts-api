@@ -257,6 +257,21 @@ func (rm *ReviewModels) GetReviewsByRoast(roastKey string) ([]Review, error) {
 	return reviews, err
 }
 
+func (rm *ReviewModels) RemoveReview(roastID, reviewID string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(rm.tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: "ROAST#" + roastID},
+			"SK": &types.AttributeValueMemberS{Value: "REVIEW#" + reviewID},
+		},
+	}
+	_, err := rm.client.DeleteItem(context.Background(), input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetUserByPrefix retrieves a user through userID
 func (rm *UserModels) GetUserByPrefix(userPrefix string) (*User, error) {
 	input := &dynamodb.QueryInput{

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"github.com/94DanielBrown/awsapp"
@@ -39,18 +38,16 @@ func (app *Config) routes() *echo.Echo {
 	e.POST("/roast", app.createRoastHandler, roasts.CreateRoastValidator)
 	e.GET("/roasts", app.getAllRoastsHandler)
 	e.GET("/roast/:roastID", app.getRoastHandler)
+	e.POST("/saveRoast", app.saveRoastHandler)
+	e.POST("/removeRoast", app.removeRoastHandler)
 	//Add validator
 	// use request body lots of things
 	e.POST("/review", app.createReviewHandler)
 	e.GET("/reviews/:roastID", app.getReviewsHandler)
-	e.GET("/test", func(c echo.Context) error {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Test error")
-	})
+	e.POST("/removeReview", app.removeReviewHandler)
 	// creates user if not already in dynamo
 	e.GET("/user/:userID", app.getUserHandler)
 	// use request body lots of things
-	e.POST("/saveRoast", app.saveRoastHandler)
-	e.POST("/removeRoast", app.removeRoastHandler)
 	e.GET("/userReviews/:userID", app.getUserReviewsHandler)
 	e.POST("/userSettings/:userID", app.updateUserSettingsHandler)
 	e.GET("/newImage", app.uploadImage)
