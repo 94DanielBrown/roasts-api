@@ -292,15 +292,15 @@ func (app *Config) removeReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 
 	}
-	roastID := "ROAST#" + requestData.RoastID
-	reviewID := "REVIEW#" + requestData.ReviewID
-	err := app.ReviewModels.RemoveReview(roastID, reviewID)
+	roastKey := "ROAST#" + requestData.RoastID
+	reviewKey := "REVIEW#" + requestData.ReviewID
+	err := app.ReviewModels.RemoveReview(roastKey, reviewKey)
 	if err != nil {
 		errMsg := "error removing review"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-	app.Logger.Info("review removed", "id", reviewID, "correlationID", correlationId)
+	app.Logger.Info("review removed", "id", reviewKey, "correlationID", correlationId)
 	return c.JSON(http.StatusOK, requestData.ReviewID)
 }
 

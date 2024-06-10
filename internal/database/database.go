@@ -257,12 +257,14 @@ func (rm *ReviewModels) GetReviewsByRoast(roastKey string) ([]Review, error) {
 	return reviews, err
 }
 
-func (rm *ReviewModels) RemoveReview(roastID, reviewID string) error {
+func (rm *ReviewModels) RemoveReview(roastKey, reviewKey string) error {
+	fmt.Println("PK: ", roastKey)
+	fmt.Println("SK: ", reviewKey)
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(rm.tableName),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "ROAST#" + roastID},
-			"SK": &types.AttributeValueMemberS{Value: "REVIEW#" + reviewID},
+			"PK": &types.AttributeValueMemberS{Value: roastKey},
+			"SK": &types.AttributeValueMemberS{Value: reviewKey},
 		},
 	}
 	_, err := rm.client.DeleteItem(context.Background(), input)
