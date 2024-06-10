@@ -229,7 +229,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	}
 
 	newReview.RoastKey = "ROAST#" + newReview.RoastID
-	newReview.SK = "REVIEW#" + reviews.GenerateID()
+	newReview.ReviewKey = "REVIEW#" + reviews.GenerateID()
 
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
 
@@ -277,14 +277,14 @@ func (app *Config) getReviewsHandler(c echo.Context) error {
 // @ID delete-review
 // @Tags reviews
 // @Produce json
-// @Success 200 {object} database.Review.ID
+// @Success 200 {object} database.Review.reviewKey
 // @Failure 500 {object} message
 // @Router /removeReview [post]
 func (app *Config) removeReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
 	var requestData struct {
-		RoastID  string `json:"roastID"`
-		ReviewID string `json:"reviewID"`
+		RoastID   string `json:"roastID"`
+		ReviewKey string `json:"reviewKey"`
 	}
 	if err := c.Bind(&requestData); err != nil {
 		errMsg := "error binding request"
@@ -292,16 +292,16 @@ func (app *Config) removeReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 
 	}
+	fmt.Println("requestData: ", requestData)
 	roastKey := "ROAST#" + requestData.RoastID
-	reviewKey := "REVIEW#" + requestData.ReviewID
-	err := app.ReviewModels.RemoveReview(roastKey, reviewKey)
+	err := app.ReviewModels.RemoveReview(roastKey, requestData.ReviewKey)
 	if err != nil {
 		errMsg := "error removing review"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
-	app.Logger.Info("review removed", "id", reviewKey, "correlationID", correlationId)
-	return c.JSON(http.StatusOK, requestData.ReviewID)
+	app.Logger.Info("review removed", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, requestData.ReviewKey)
 }
 
 // getUserHandler retrieves the user's information from DynamoDB or otherwise creates a new user
