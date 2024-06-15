@@ -228,9 +228,12 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
 
-	newReview.RoastKey = "ROAST#" + newReview.RoastID
-	newReview.ReviewKey = "REVIEW#" + reviews.GenerateID()
+	if newReview.ReviewKey == "" {
+		newReview.RoastKey = "ROAST#" + newReview.RoastID
+		newReview.ReviewKey = "REVIEW#" + reviews.GenerateID()
+	}
 
+	newReview.RoastKey = "ROAST#" + newReview.RoastID
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
 
 	if err := app.ReviewModels.CreateReview(newReview); err != nil {
