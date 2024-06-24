@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/94DanielBrown/roasts-api/internal/database"
+	"github.com/94DanielBrown/roasts-api/internal/ratings"
 	"github.com/94DanielBrown/roasts-api/internal/reviews"
 	"github.com/94DanielBrown/roasts-api/internal/utils"
 	"github.com/golang-jwt/jwt/v4"
@@ -243,6 +244,12 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	}
 
 	app.Logger.Info("review created", "correlationID", correlationId)
+	err := ratings.UpdateAverages(app.RoastModels, newReview)
+	if err != nil {
+		errMsg := "error updating averages"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
 	return c.JSON(http.StatusOK, newReview)
 }
 

@@ -21,7 +21,6 @@ func UpdateAverages(roastModels database.RoastModels, newReview database.Review)
 	roast.PotatoesRating = ((roast.PotatoesRating * float64(roast.ReviewCount)) + float64(newReview.PotatoesRating)) / float64(newCount)
 	roast.VegRating = ((roast.VegRating * float64(roast.ReviewCount)) + float64(newReview.VegRating)) / float64(newCount)
 	roast.GravyRating = ((roast.GravyRating * float64(roast.ReviewCount)) + float64(newReview.GravyRating)) / float64(newCount)
-	// Repeat for all other ratings...
 
 	roast.ReviewCount = newCount
 
