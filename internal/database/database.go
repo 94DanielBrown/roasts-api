@@ -39,7 +39,7 @@ type Roast struct {
 	ReviewCount int    `dynamodbav:"ReviewCount" json:"reviewCount"`
 	// Average rating of 0 is omitted, frontend should take no result as an indication to display that there's no reviews yet
 	OverallRating           float64 `dynamodbav:"OverallRating" json:"overallRating,omitempty"`
-	MeatRating              float64 `dynamodbav:"meatRating" json:"meatRating,omitempty"`
+	MeatRating              float64 `dynamodbav:"MeatRating" json:"meatRating,omitempty"`
 	PotatoesRating          float64 `dynamodbav:"PotatoesRating" json:"potatoesRating,omitempty"`
 	VegRating               float64 `dynamodbav:"VegRating" json:"vegRating,omitempty"`
 	GravyRating             float64 `dynamodbav:"GravyRating" json:"gravyRating,omitempty"`

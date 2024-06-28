@@ -7,6 +7,7 @@ import (
 	"github.com/94DanielBrown/roasts-api/internal/database"
 )
 
+// TODO - This doens't update the combined ratings for criteria filter i.e MeatGravyRating etc
 func UpdateAverages(roastModels database.RoastModels, review database.Review, ratingOperation string) error {
 	roast, err := roastModels.GetRoastByPrefix(review.RoastKey)
 	if err != nil {
