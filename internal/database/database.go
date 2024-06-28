@@ -257,6 +257,36 @@ func (rm *ReviewModels) GetReviewsByRoast(roastKey string) ([]Review, error) {
 	return reviews, err
 }
 
+func (rm *ReviewModels) GetReviewByKey(roastKey, reviewKey string) (*Review, error) {
+	fmt.Println("roastKey: ", roastKey)
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(rm.tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: roastKey},
+			"SK": &types.AttributeValueMemberS{Value: reviewKey},
+		},
+	}
+
+	result, err := rm.client.GetItem(context.Background(), input)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Item == nil {
+		return nil, fmt.Errorf("no review found with key: %s", reviewKey)
+	}
+
+	var review Review
+	err = attributevalue.UnmarshalMap(result.Item, &review)
+	if err != nil {
+		fmt.Println("error unmarshalling review: ", err)
+		return nil, fmt.Errorf("error unmarshalling review: %s", err)
+	}
+
+	fmt.Println("returning review: ", review)
+	return &review, nil
+}
+
 func (rm *ReviewModels) RemoveReview(roastKey, reviewKey string) error {
 	fmt.Println("PK: ", roastKey)
 	fmt.Println("SK: ", reviewKey)

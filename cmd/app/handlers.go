@@ -244,7 +244,7 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	}
 
 	app.Logger.Info("review created", "correlationID", correlationId)
-	err := ratings.UpdateAverages(app.RoastModels, newReview)
+	err := ratings.UpdateAverages(app.RoastModels, newReview, "plusCount")
 	if err != nil {
 		errMsg := "error updating averages"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
@@ -302,12 +302,25 @@ func (app *Config) removeReviewHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 
 	}
-	fmt.Println("requestData: ", requestData)
 	roastKey := "ROAST#" + requestData.RoastID
-	err := app.ReviewModels.RemoveReview(roastKey, requestData.ReviewKey)
+	oldReview, err := app.ReviewModels.GetReviewByKey(roastKey, requestData.ReviewKey)
+	if err != nil {
+		errMsg := "error getting review"
+		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	err = app.ReviewModels.RemoveReview(roastKey, requestData.ReviewKey)
 	if err != nil {
 		errMsg := "error removing review"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
+	}
+
+	err = ratings.UpdateAverages(app.RoastModels, *oldReview, "minusCount")
+	if err != nil {
+		errMsg := "error updating averages"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 	}
 	app.Logger.Info("review removed", "correlationID", correlationId)
