@@ -42,7 +42,7 @@ build: fmt vet ## Build the Roasts API binary.
 
 .PHONY: run
 run: fmt vet ## Run the Roasts API from your host.
-	(cd cmd/app && go run .)
+	(export ENV=local && cd cmd/app && go run .)
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the Roasts API.
