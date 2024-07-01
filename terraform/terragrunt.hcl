@@ -10,7 +10,7 @@ locals {
   tags          = merge(local.default_tags, local.override_tags)
 
   all_inputs = merge(
-    local.env_vars,
+    local.env_vars, local.global_vars
   )
 }
 
