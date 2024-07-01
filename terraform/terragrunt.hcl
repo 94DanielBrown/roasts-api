@@ -8,7 +8,13 @@ locals {
   }
   override_tags = try(yamldecode(file("${find_in_parent_folders("tags.yaml")}")))
   tags          = merge(local.default_tags, local.override_tags)
+
+  all_inputs = merge(
+    local.env_vars,
+  )
 }
+
+inputs = local.all_inputs
 
 generate "versions" {
   path      = "versions.tf"
