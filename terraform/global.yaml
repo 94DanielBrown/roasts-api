@@ -12,7 +12,7 @@ container_definitions:
     cpu: 512
     memory: 1024
     essential: true
-    image: "public.ecr.aws/aws-containers/ecsdemo-frontend:776fd50"
+    image: "nginx:latest"
     port_mappings:
       - name: "ecs-sample"
         containerPort: 80
