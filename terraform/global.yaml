@@ -2,25 +2,16 @@ terraform_version: "v1.5.7"
 terraform_provider_aws: "5.56.1"
 
 # ECS Cluster
-cluster_name: "roasts"
-cluster_arn: "arn:aws:ecs:eu-west-1:637423178719:cluster/roasts"
+cluster_name: "personal"
+cluster_arn: "arn:aws:ecs:eu-west-1:637423178719:cluster/personal"
 
 
-# ECS Service
-container_definitions:
-  ecs-sample:
-    cpu: 512
-    memory: 1024
-    essential: true
-    image: "637423178719.dkr.ecr.eu-west-1.amazonaws.com/images:latest"
-    port_mappings:
-      - name: "ecs-sample"
-        containerPort: 80
-        protocol: "tcp"
-    readonly_root_filesystem: false
-    enable_cloudwatch_logging: false
-    launch_type: "FARGATE"
-
+log_configuration:
+  log_driver: "awslogs"
+  options: 
+    awslogs-group: "/ecs/ecs-sample"
+    awslogs-region: "eu-west-1"
+    awslogs-stream-prefix: = "ecs"
 
 # TEMP allow all
 security_group_rules:

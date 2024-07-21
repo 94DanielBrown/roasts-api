@@ -9,31 +9,17 @@ import (
 
 func LoadEnvVariables() error {
 	env := os.Getenv("ENV")
-	if env == "" {
-		return fmt.Errorf("ENV not set")
-	}
-
-	if env == "local" {
+	switch env {
+	case "local":
 		err := godotenv.Load()
 		if err != nil {
 			return err
 		}
 		return nil
-	}
-
-	if env == "localBinary" {
-		envFile := os.Getenv("ENV_FILE")
-		if envFile == "" {
-			return fmt.Errorf("ENV_FILE not set for localBinary environment")
-		}
-
-		err := godotenv.Load(envFile)
-		if err != nil {
-			return fmt.Errorf("error loading env file: %v", err)
-		}
-		fmt.Printf("Loaded env variables from %s\n", envFile)
+	case "dev":
 		return nil
+	default:
+		return fmt.Errorf("ENV variable not recognized")
 	}
-
 	return nil
 }
