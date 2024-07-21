@@ -111,6 +111,9 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
 		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
 	}
+	if allRoasts == nil {
+		allRoasts = []database.Roast{}
+	}
 
 	app.Logger.Info("all roasts returned", "correlationID", correlationId)
 	return c.JSON(http.StatusOK, allRoasts)
@@ -417,8 +420,9 @@ func (app *Config) uploadImage(c echo.Context) error {
 	bucketName := "images-testing-dev-roast"
 	objectKey := fmt.Sprintf("upload/%d", time.Now().Unix())
 	expiry := 30 * time.Minute
+	imageType := "image/jpeg"
 
-	presignedURL, err := app.S3.GeneratePresignedURL(bucketName, objectKey, expiry)
+	presignedURL, err := app.S3.GeneratePresignedURL(bucketName, objectKey, imageType, expiry)
 	if err != nil {
 		errMsg := "error creating presigned URL"
 		app.Logger.Error("failed to generate presigned URL", "error", err, "correlationID", correlationId)

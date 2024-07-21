@@ -13,6 +13,7 @@ import (
 	"github.com/94DanielBrown/roasts-api/internal/database"
 	"github.com/94DanielBrown/roasts-api/internal/roasts"
 	"github.com/94DanielBrown/roasts-api/internal/utils"
+	"github.com/94DanielBrown/roasts-api/pkg/firebase"
 
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -38,9 +39,9 @@ func (app *Config) routes() *echo.Echo {
 	e.GET("/", app.home)
 	e.POST("/roast", app.createRoastHandler, roasts.CreateRoastValidator)
 	e.GET("/roasts", app.getAllRoastsHandler)
-	e.GET("/roast/:roastID", app.getRoastHandler)
-	e.POST("/saveRoast", app.saveRoastHandler)
-	e.POST("/removeRoast", app.removeRoastHandler)
+	e.GET("/roast/:roastID", app.getRoastHandler, firebase.FirebaseJWTMiddleware())
+	e.POST("/saveRoast", app.saveRoastHandler, firebase.FirebaseJWTMiddleware())
+	e.POST("/removeRoast", app.removeRoastHandler, firebase.FirebaseJWTMiddleware())
 	//Add validator
 	// use request body lots of things
 	e.POST("/review", app.createReviewHandler)

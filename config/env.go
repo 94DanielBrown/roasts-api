@@ -21,5 +21,4 @@ func LoadEnvVariables() error {
 	default:
 		return fmt.Errorf("ENV variable not recognized")
 	}
-	return nil
 }
