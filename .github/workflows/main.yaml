@@ -29,7 +29,7 @@ jobs:
 
     - name: Tag Docker image
       run: |
-        docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/my-app:${{ github.sha }}
+        docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:${{ github.sha }}
 
     - name: Push Docker image to ECR
       run: |
