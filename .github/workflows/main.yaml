@@ -5,6 +5,15 @@ on:
     branches:
       - main
 
+env:
+  IMAGE_TAG: ${{ github.sha }}
+  ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_REGISTRY: roasts-api
+  ECS_CLUSTER: personal
+  ECS_SERVICE: roasts-api
+  ECS_TASK_DEFINITION: roasts-api
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -21,18 +30,35 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+        aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:latest .
+        docker build -t $ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:$IMAGE_TAG .
+      outputs: 
 
     - name: Tag Docker image
       run: |
-        docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:${{ github.sha }}
+        docker tag $ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:latest
 
     - name: Push Docker image to ECR
       run: |
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:$IMAGE_TAG
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:latest
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:${{ github.sha }}
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@97587c9d45a4930bf0e3da8dd2feb2a463cf4a3a
+      with:
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@de0132cf8cdedb79975c6d42b77eb7ea193cf28e
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
 
