@@ -8,6 +8,6 @@ include {
 
 inputs = {
   enable_execute_command = true
-  name = "test"
-  family = "test"
+  name = "roasts-api"
+  family = "roasts"
 }
