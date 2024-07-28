@@ -35,7 +35,6 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t $ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/roasts-api:$IMAGE_TAG .
-      outputs: 
 
     - name: Tag Docker image
       run: |
