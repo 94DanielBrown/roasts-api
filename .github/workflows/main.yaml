@@ -8,7 +8,7 @@ on:
 env:
   IMAGE_TAG: ${{ github.sha }}
   ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  ECR_REPOSITORY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_REPOSITORY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
   ECR_REGISTRY: roasts-api
   ECS_CLUSTER: personal
   ECS_SERVICE: roasts-api
