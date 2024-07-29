@@ -13,6 +13,7 @@ env:
   ECS_CLUSTER: personal
   ECS_SERVICE: roasts-api
   ECS_TASK_DEFINITION: roasts-api
+  CONTAINER_NAME: roasts
 
 jobs:
   build-and-push:
