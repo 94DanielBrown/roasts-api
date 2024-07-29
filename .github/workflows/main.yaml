@@ -12,7 +12,7 @@ env:
   ECR_REGISTRY: roasts-api
   ECS_CLUSTER: personal
   ECS_SERVICE: roasts-api
-  ECS_TASK_DEFINITION: roasts-api
+  ECS_TASK_DEFINITION: roasts
   CONTAINER_NAME: roasts
 
 jobs:
