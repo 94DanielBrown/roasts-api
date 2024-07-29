@@ -8,7 +8,7 @@ include {
 
 inputs = {
   repository_name = "roasts-api"
-  image_tag_mutability = "IMMUTABLE"
+  repository_image_tag_mutability = "MUTABLE"
   scan_on_push = true
   encryption_type = "AES256"
   repository_lifecycle_policy = jsonencode({
