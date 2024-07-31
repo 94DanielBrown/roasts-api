@@ -27,6 +27,7 @@ type Config struct {
 	UserModels   database.UserModels
 	Logger       *slog.Logger
 	S3           *s3.Client
+	ImageBucket  string
 }
 
 func (app *Config) routes() *echo.Echo {
@@ -59,18 +60,15 @@ func (app *Config) routes() *echo.Echo {
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
-	err := config.LoadEnvVariables()
+	env, err := config.LoadEnvVariables()
 	if err != nil {
 		logger.Error("Unable to load env variables", "error", err)
 		os.Exit(1)
 	}
 
-	// TODO - env variable for table name
-	tableName := "roasts"
-
 	ctx := context.Background()
 
-	client, table, err := awsapp.InitDynamo(ctx, tableName)
+	client, table, err := awsapp.InitDynamo(ctx, env.TableName)
 	if err != nil {
 		logger.Error("error setting up dynamo for app", "error", err)
 		os.Exit(1)
@@ -93,5 +91,5 @@ func main() {
 	}
 
 	e := app.routes()
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", webPort)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", env.WebPort)))
 }

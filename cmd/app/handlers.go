@@ -417,7 +417,7 @@ func (app *Config) updateUserSettingsHandler(c echo.Context) error {
 func (app *Config) uploadImage(c echo.Context) error {
 	fmt.Println("test")
 	correlationId := c.Get("correlationID")
-	bucketName := "images-testing-dev-roast"
+	bucketName := app.ImageBucket
 	objectKey := fmt.Sprintf("upload/%d", time.Now().Unix())
 	expiry := 30 * time.Minute
 	imageType := "image/jpeg"
