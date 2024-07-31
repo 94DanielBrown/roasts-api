@@ -99,5 +99,14 @@ func FirebaseJWTMiddleware() echo.MiddlewareFunc {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwt.MapClaims)
 		},
+		SuccessHandler: func(c echo.Context) {
+			fmt.Println("JWT validated successfully")
+		},
+		ErrorHandler: func(c echo.Context, err error) error {
+			token := c.Request().Header.Get("Authorization")
+			fmt.Printf("Invalid JWT: %s\n", token)
+			fmt.Printf("Error: %v\n", err)
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired jwt")
+		},
 	})
 }

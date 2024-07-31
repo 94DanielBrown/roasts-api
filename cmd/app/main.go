@@ -16,6 +16,7 @@ import (
 	"github.com/94DanielBrown/roasts-api/pkg/firebase"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -32,6 +33,8 @@ type Config struct {
 
 func (app *Config) routes() *echo.Echo {
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	// Use custom middleware func to add correlationID to context to use in logging
 	e.Use(utils.CorrelationID)
