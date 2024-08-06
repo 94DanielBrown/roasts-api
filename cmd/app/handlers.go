@@ -130,6 +130,7 @@ func (app *Config) getAllRoastsHandler(c echo.Context) error {
 // @Router /saveRoast [post]
 func (app *Config) saveRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
+	userID := c.Get("userID")
 	var requestData struct {
 		RoastID string `json:"roastID"`
 		UserID  string `json:"userID"`
@@ -138,6 +139,9 @@ func (app *Config) saveRoastHandler(c echo.Context) error {
 		errMsg := "error binding request"
 		app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
 		return c.JSON(http.StatusBadRequest, message{Message: errMsg})
+	}
+	if userID != requestData.UserID {
+		return fmt.Errorf("uid in jwt doesn't match request data")
 	}
 	err := app.UserModels.UpdateSavedRoasts(requestData.UserID, requestData.RoastID)
 	if err != nil {
@@ -159,6 +163,7 @@ func (app *Config) saveRoastHandler(c echo.Context) error {
 // @Router /removeRoast/{roastID} [post]
 func (app *Config) removeRoastHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
+	userID := c.Get("userID")
 	var requestData struct {
 		RoastID string `json:"roastID"`
 		UserID  string `json:"userID"`
@@ -169,6 +174,9 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, message{Message: errMsg})
 	}
 
+	if userID != requestData.UserID {
+		return fmt.Errorf("uid in jwt doesn't match request data")
+	}
 	err := app.UserModels.RemoveSavedRoast(requestData.UserID, requestData.RoastID)
 	if err != nil {
 		errMsg := "Error removing roast"
@@ -189,48 +197,16 @@ func (app *Config) removeRoastHandler(c echo.Context) error {
 // @Router /review [post]
 func (app *Config) createReviewHandler(c echo.Context) error {
 	correlationId := c.Get("correlationID")
+	userID := c.Get("userID")
 	var newReview database.Review
-
-	// TODO - auth supabase jwt token and authorize request
-	// Check header and get jwt token if present
-	//authHeader := c.Request().Header.Get("Authorization")
-	//fmt.Println("Authorization", authHeader)
-	//var tokenString string
-	//if len(authHeader) > 7 && strings.ToUpper(authHeader[0:7]) == "BEARER " {
-	//	tokenString = authHeader[7:]
-	//}
-	//if tokenString == "" {
-	//	errMsg := "jwt token is missing in the authorization header"
-	//	app.Logger.Error(errMsg)
-	//	return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-	//}
-	//// Parse the JWT token and extract the claims
-	//token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-	//	// Ensure the token's algorithm matches your expected signing method
-	//	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-	//		return nil, http.ErrNotSupported
-	//	}
-	//	return []byte("qwertyuiopasdfghjklzxcvbnm123456"), nil // Replace with non temp key
-	//})
-	//if err != nil {
-	//	errMsg := "error parsing JWT token"
-	//	app.Logger.Error(errMsg, "error", err, "correlationID", correlationId)
-	//	return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
-	//}
-	//// Map claims from token so can be used in review
-	//if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-	//	newReview.UserID = claims.UserID
-	//	newReview.FirstName = claims.FirstName
-	//	newReview.LastName = claims.LastName
-	//} else {
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "invalid jwt token"})
-	//}
 
 	if err := c.Bind(&newReview); err != nil {
 		errMsg := "error in binding request"
 		slog.Error(errMsg, "err", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": errMsg})
 	}
+
+	fmt.Println("newReview", newReview)
 
 	if newReview.ReviewKey == "" {
 		newReview.RoastKey = "ROAST#" + newReview.RoastID
@@ -240,6 +216,12 @@ func (app *Config) createReviewHandler(c echo.Context) error {
 	newReview.RoastKey = "ROAST#" + newReview.RoastID
 	app.Logger.Info("review request received: ", "payload", newReview, "correlationID", correlationId)
 
+	fmt.Println("context UserID", userID)
+	fmt.Println("new review UserID", newReview.UserID)
+
+	if userID != newReview.UserID {
+		return fmt.Errorf("uid in jwt doesn't match request data")
+	}
 	if err := app.ReviewModels.CreateReview(newReview); err != nil {
 		errMsg := "error creating review"
 		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)

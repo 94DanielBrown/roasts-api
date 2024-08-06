@@ -48,7 +48,7 @@ func (app *Config) routes() *echo.Echo {
 	e.POST("/removeRoast", app.removeRoastHandler, firebase.FirebaseJWTMiddleware())
 	//Add validator
 	// use request body lots of things
-	e.POST("/review", app.createReviewHandler)
+	e.POST("/review", app.createReviewHandler, firebase.FirebaseJWTMiddleware())
 	e.GET("/reviews/:roastID", app.getReviewsHandler)
 	e.POST("/removeReview", app.removeReviewHandler)
 	// creates user if not already in dynamo

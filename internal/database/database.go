@@ -373,7 +373,6 @@ func (um *UserModels) UpdateUser(user User) error {
 // UpdateSavedRoasts updates the SavedRoasts array for a user identified by userID
 func (um *UserModels) UpdateSavedRoasts(userID, roastID string) error {
 	// Retrieve the user by userID
-	fmt.Println("userID: ", userID)
 	userKey := "USER#" + userID
 	user, err := um.GetUserByPrefix(userKey)
 	if err != nil {

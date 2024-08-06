@@ -100,7 +100,10 @@ func FirebaseJWTMiddleware() echo.MiddlewareFunc {
 			return new(jwt.MapClaims)
 		},
 		SuccessHandler: func(c echo.Context) {
-			fmt.Println("JWT validated successfully")
+			claims := c.Get("user").(*jwt.Token).Claims.(*jwt.MapClaims)
+			userID := (*claims)["user_id"].(string)
+			c.Set("userID", userID)
+			fmt.Println("JWT validated successfully and userID set in context:", userID)
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
 			token := c.Request().Header.Get("Authorization")
