@@ -91,6 +91,7 @@ func main() {
 		UserModels:   database.NewUserModels(client),
 		Logger:       logger,
 		S3:           s3Client,
+		ImageBucket:  env.ImageBucket,
 	}
 
 	e := app.routes()

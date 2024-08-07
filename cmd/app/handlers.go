@@ -397,7 +397,6 @@ func (app *Config) updateUserSettingsHandler(c echo.Context) error {
 }
 
 func (app *Config) uploadImage(c echo.Context) error {
-	fmt.Println("test")
 	correlationId := c.Get("correlationID")
 	bucketName := app.ImageBucket
 	objectKey := fmt.Sprintf("upload/%d", time.Now().Unix())
@@ -415,6 +414,7 @@ func (app *Config) uploadImage(c echo.Context) error {
 		"presignedURL": presignedURL,
 		"objectKey":    objectKey,
 	}
+	fmt.Println("presigned URL", presignedURL)
 
 	return c.JSON(http.StatusOK, response)
 }

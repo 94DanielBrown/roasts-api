@@ -2,6 +2,7 @@ package awsconfig
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,6 +14,8 @@ func NewConfig() (aws.Config, error) {
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	awsRegion := os.Getenv("AWS_REGION")
+
+	fmt.Println("aws region", awsRegion)
 
 	credProvider := aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(
 		awsAccessKey,
