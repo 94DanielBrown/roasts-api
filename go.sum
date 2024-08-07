@@ -1,5 +1,5 @@
-github.com/94DanielBrown/awsapp v1.0.1-0.20240807174657-2d7dd94baa46 h1:FoK0l2F/4HqeO7OFSQu8Mug1rBokcev/vvJyrteux4E=
-github.com/94DanielBrown/awsapp v1.0.1-0.20240807174657-2d7dd94baa46/go.mod h1:ftc08hVa9g0gIe59nnA3j0mvL9rFyYZ+YNj6grzJytA=
+github.com/94DanielBrown/awsapp v1.0.0 h1:48Rp/X+492Bo8bu4dsY/eqb0VobqbQWqR8talociQO8=
+github.com/94DanielBrown/awsapp v1.0.0/go.mod h1:ftc08hVa9g0gIe59nnA3j0mvL9rFyYZ+YNj6grzJytA=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/aws/aws-sdk-go-v2 v1.30.3 h1:jUeBtG0Ih+ZIFH0F4UkmL9w3cSpaMv9tYYDbzILP8dY=

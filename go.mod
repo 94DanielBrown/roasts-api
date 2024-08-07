@@ -3,7 +3,7 @@ module github.com/94DanielBrown/roasts-api
 go 1.21.5
 
 require (
-	github.com/94DanielBrown/awsapp v1.0.1-0.20240807174657-2d7dd94baa46
+	github.com/94DanielBrown/awsapp v1.0.0
 	github.com/aws/aws-sdk-go-v2 v1.30.3
 	github.com/aws/aws-sdk-go-v2/config v1.27.27
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
