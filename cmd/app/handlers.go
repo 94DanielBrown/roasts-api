@@ -90,6 +90,31 @@ func (app *Config) createRoastHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, newRoast)
 }
 
+// @Summary delete a roast
+// @ID delete-roast
+// @Tags roasts
+// @Accept json
+// @Produce json
+// @Param data body database.Roast true "Roast object that needs to be created"
+// @Success 200 {object} database.Roast
+// @Failure 400 {object} message
+// @Failure 500 {object} message
+// @Router /roast/{roastID} [post]
+func (app *Config) deleteRoastHandler(c echo.Context) error {
+	correlationId := c.Get("correlationID")
+	roastName := c.Request().Header.Get("Roast-Name")
+	app.Logger.Info("Roast deletion request received", "roast", roastName, "correlationID", correlationId)
+
+	if err := app.RoastModels.DeleteRoast(roastName); err != nil {
+		errMsg := "Error delete roast"
+		app.Logger.Error(errMsg, "err", err, "correlationID", correlationId)
+		return c.JSON(http.StatusInternalServerError, message{Message: errMsg})
+	}
+
+	app.Logger.Info("Roast deleted", "correlationID", correlationId)
+	return c.JSON(http.StatusOK, fmt.Sprintf("%s deleted", roastName))
+}
+
 // @Summary get all roasts
 // @ID  get-all-roasts
 // @Tags roasts

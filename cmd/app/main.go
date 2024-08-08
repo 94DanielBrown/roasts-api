@@ -41,6 +41,7 @@ func (app *Config) routes() *echo.Echo {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.POST("/roast", app.createRoastHandler, apikey.Validate())
+	e.POST("/deleteRoast", app.deleteRoastHandler, apikey.Validate())
 	e.GET("/roasts", app.getAllRoastsHandler)
 	e.GET("/roast/:roastID", app.getRoastHandler, firebase.FirebaseJWTMiddleware())
 	e.POST("/saveRoast", app.saveRoastHandler, firebase.FirebaseJWTMiddleware())

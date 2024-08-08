@@ -106,14 +106,84 @@ func (rm *RoastModels) CreateRoast(roast Roast) error {
 	if err != nil {
 		return err
 	}
-
 	input := &dynamodb.PutItemInput{
 		Item:      av,
 		TableName: aws.String(rm.tableName),
 	}
-
 	_, err = rm.client.PutItem(context.Background(), input)
 	return err
+}
+
+func (rm *RoastModels) queryRoastByPKAndSKPrefix(pk string, skPrefix string) (*dynamodb.QueryOutput, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(rm.tableName),
+		KeyConditionExpression: aws.String("PK = :pkval and begins_with(SK, :skval)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkval": &types.AttributeValueMemberS{Value: pk},
+			":skval": &types.AttributeValueMemberS{Value: skPrefix},
+		},
+	}
+
+	result, err := rm.client.Query(context.Background(), input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query items: %w", err)
+	}
+
+	return result, nil
+}
+
+func (rm *RoastModels) deleteRoastByPKAndSK(pk string, sk string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(rm.tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: pk},
+			"SK": &types.AttributeValueMemberS{Value: sk},
+		},
+	}
+
+	_, err := rm.client.DeleteItem(context.Background(), input)
+	if err != nil {
+		return fmt.Errorf("failed to delete item: %w", err)
+	}
+
+	return nil
+}
+
+func (rm *RoastModels) deleteRoastByPK(pk string) error {
+	skPrefix := "PROFILE#"
+	queryResult, err := rm.queryRoastByPKAndSKPrefix(pk, skPrefix)
+	if err != nil {
+		return fmt.Errorf("failed to query items: %w", err)
+	}
+
+	for _, item := range queryResult.Items {
+		var roast struct {
+			PK string
+			SK string
+		}
+
+		err = attributevalue.UnmarshalMap(item, &roast)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal item: %w", err)
+		}
+
+		err = rm.deleteRoastByPKAndSK(roast.PK, roast.SK)
+		if err != nil {
+			return fmt.Errorf("failed to delete item: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (rm *RoastModels) DeleteRoast(roastName string) error {
+	keyName := strings.ReplaceAll(roastName, " ", "")
+	roastKey := "ROAST#" + keyName
+	err := rm.deleteRoastByPK(roastKey)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rm *RoastModels) UpdateRoast(roast *Roast) error {
@@ -288,8 +358,6 @@ func (rm *ReviewModels) GetReviewByKey(roastKey, reviewKey string) (*Review, err
 }
 
 func (rm *ReviewModels) RemoveReview(roastKey, reviewKey string) error {
-	fmt.Println("PK: ", roastKey)
-	fmt.Println("SK: ", reviewKey)
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(rm.tableName),
 		Key: map[string]types.AttributeValue{
