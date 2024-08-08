@@ -25,11 +25,6 @@ type message struct {
 	Message string `json:"message"`
 }
 
-// home returns a simple welcome message to check if the server is running properly
-func (app *Config) home(c echo.Context) error {
-	return c.JSON(http.StatusOK, "home")
-}
-
 // @Summary get a roast
 // @ID get-roast
 // @Tags roasts
